@@ -1,0 +1,9 @@
+repos
+build/*/
+excludes
+docs
+.git
+.gitignore
+.gitmodules
+.vscode
+results

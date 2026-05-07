@@ -1,0 +1,21 @@
+${HOME}/shmem-workspace/repos/libfabric/configure \
+    --prefix=${HOME}/shmem-workspace/build/latest/install/ofi \
+    --enable-rxm=dl \
+    --enable-shm=dl \
+    --enable-tcp=dl \
+    --enable-verbs=dl \
+    --disable-bgq \
+    --disable-efa \
+    --disable-gni \
+    --disable-hook_debug \
+    --disable-mlx \
+    --disable-mrail \
+    --disable-perf \
+    --disable-psm \
+    --disable-rxd \
+    --disable-rstream \
+    --disable-sockets \
+    --disable-static \
+    --disable-udp \
+    --disable-usnic \
+    --disable-xpmem
