@@ -14,7 +14,8 @@ cmake -S ${OSU_SRC}/c/openshmem -B ${OSU_BUILD}/openshmem \
   -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc
 cmake --build ${OSU_BUILD}/openshmem --parallel
 
-if [[ "${CLUSTER}" == "aurora" ]]; then
+if [[ "${HAVE_SHMEMX}" -eq 1 ]]; then
+  source ${HOME}/shmem-workspace/config.cray-shmem.sh
   export PKG_CONFIG_PATH=${SMA_ROOT}/lib64/pkgconfig:${DSMML_ROOT}/lib/pkgconfig:$_pkg_config_path_old
   export LIBRARY_PATH=/opt/cray/pe/pmi/6.1.15/lib:$LIBRARY_PATH
   cmake -S ${OSU_SRC}/c/openshmem -B ${OSU_BUILD}/shmemx \
