@@ -45,6 +45,20 @@ debug_sos_shmemx.sh           # Debug script for SOS shmemx atomics
 excludes                      # Rsync exclude list for workspace syncing
 ```
 
+## Getting sources in repos
+* libfabric
+```
+git clone https://github.com/ofiwg/libfabric.git 
+```
+On Cray systems, the default uses the system module, e.g., libfabric/1.22.0 on Aurora.
+* SOS
+```
+git clone --recurse-submodules https://github.com/Sandia-OpenSHMEM/SOS.git
+```
+* ishmem
+```
+git clone https://github.com/oneapi-src/ishmem
+```
 ## Build
 
 Build output is placed under `$BASE` (default: `~/shmem-workspace/build/latest`).
