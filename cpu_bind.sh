@@ -124,6 +124,15 @@ fi
 export BIND2_N="${BIND2_S}"
 export IMPI_BIND2_N="${IMPI_BIND2_S}"
 
+
+if [[ "${USE_I_MPI}" == "1" ]]; then
+  export BIND2_N=""
+  export BIND64_N=""
+  export BIND1C=""
+  export BIND2C=""
+  export BIND4PS=""
+fi
+
 echo "INFO: cores/socket=${_cps}  sockets=${_nsockets}  inclusive=${_inclusive}"
 echo "INFO: BIND2_C=${BIND2_C}"
 echo "INFO: BIND2_S=${BIND2_S}"
