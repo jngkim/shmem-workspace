@@ -7,12 +7,6 @@ export _library_path=$LD_LIBRARY_PATH
 
 nnodes=${NNODES}
 
-PPN_LIST=(64 $BIND2C_MAX $BIND1C_MAX)
-declare -A BINDINGS
-BINDINGS[64]=$BIND64_N
-BINDINGS[$BIND2C_MAX]=$BIND2C
-BINDINGS[$BIND1C_MAX]=$BIND1C
-
 BENCH=(atomics barrier put_mr)
 
 mpi_exe=${OSU_BUILD}/mpi/collective/blocking/osu_barrier
