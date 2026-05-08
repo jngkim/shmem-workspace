@@ -1,5 +1,5 @@
 #!/bin/bash
-# config.v2.sh - Multi-cluster / multi-platform configuration for ishmem testing
+# config.sh - Multi-cluster / multi-platform configuration for ishmem testing
 #
 # Source this script from PBS or SLURM job scripts.
 # Cluster is detected from standard PBS/SLURM env vars, then used to set PLATFORM.

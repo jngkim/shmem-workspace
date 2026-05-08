@@ -2,7 +2,7 @@
 # Expects the following variables to be set by the caller:
 #   LOCAL_WORLD_SIZE, WORLD_SIZE, JOBID, JOB_NAME
 
-source ${HOME}/shmem-workspace/config.v2.sh
+source ${HOME}/shmem-workspace/config.sh
 
 TIMESTAMP=$(date +%Y%m%d)
 BUILD_BASE=${HOME}/shmem-workspace/build

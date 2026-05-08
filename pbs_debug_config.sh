@@ -7,7 +7,7 @@
 #PBS -A Intel-Punchlist
 #PBS -q debug
 #
-# Debug script for config.v2.sh
+# Debug script for config.sh
 # Submit: qsub -l filesystems=home -N cfg_debug -q debug pbs_debug_config.sh
 
 echo "========================================"
@@ -21,9 +21,9 @@ cat "${PBS_NODEFILE}"
 echo ""
 
 echo "========================================"
-echo "Sourcing config.v2.sh"
+echo "Sourcing config.sh"
 echo "========================================"
-source ${HOME}/shmem-workspace/config.v2.sh
+source ${HOME}/shmem-workspace/config.sh
 echo ""
 
 echo "========================================"
@@ -34,7 +34,7 @@ echo "PLATFORM       = ${PLATFORM}"
 echo ""
 
 echo "========================================"
-echo "Key env vars set by config.v2.sh"
+echo "Key env vars set by config.sh"
 echo "========================================"
 for var in \
     OFI_INSTALL PALS_PMI \

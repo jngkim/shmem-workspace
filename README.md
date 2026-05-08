@@ -17,8 +17,7 @@ repos/                        # Source repositories (clone separately)
   SOS/                            # Sandia OpenSHMEM source
 results/                      # Benchmark results organized by cluster
 # --- config / shared logic ---
-config.sh                     # Runtime env vars for GPU and OFI (legacy)
-config.v2.sh                  # Multi-cluster config: auto-detects cluster, sets platform env vars and CPU binding
+config.sh                     # Multi-cluster config: auto-detects cluster, sets platform env vars and CPU binding
 config.cray-shmem.sh          # Loads modules for Cray SHMEM runtime
 cpu_bind.sh                   # CPU binding env vars for MPI runs (source before running)
 test_all.sh                   # Common build-and-test logic sourced by PBS/Slurm job scripts
@@ -27,7 +26,7 @@ osu_pair_bench.sh             # OSU pair (2-rank) benchmark logic sourced by OSU
 osu_multi_bench.sh            # OSU multi-node (variable PPN) benchmark logic sourced by OSU bench job scripts
 # --- PBS job scripts ---
 pbs_test_all.sh               # Build + run all tests
-pbs_debug_config.sh           # Validate config.v2.sh on a real node
+pbs_debug_config.sh           # Validate config.sh on a real node
 pbs_debug_sos.sh              # Run SOS debug tests
 pbs_fi_debug.sh               # Run libfabric debug benchmarks
 pbs_osu_bench.sh              # Run OSU Put Latency benchmarks
@@ -94,7 +93,7 @@ bash build/build_ishmem.sh
 
 ## Configuration
 
-`config.v2.sh` is the central runtime configuration script sourced by all job scripts. It auto-detects the cluster from scheduler environment variables (`SLURM_CLUSTER_NAME`, `PBS_O_HOST`, or hostname) and sets platform-specific environment variables.
+`config.sh` is the central runtime configuration script sourced by all job scripts. It auto-detects the cluster from scheduler environment variables (`SLURM_CLUSTER_NAME`, `PBS_O_HOST`, or hostname) and sets platform-specific environment variables.
 
 | Variable | Description |
 |---|---|
@@ -105,7 +104,7 @@ Platform-specific variables set automatically:
 - **Cray (Aurora/Borealis)**: `OFI_INSTALL`, `PALS_PMI=pmix`, `FI_CXI_*`, `SHMEM_BOUNCE_SIZE`
 - **InfiniBand (Florence/anbmg)**: `USE_I_MPI=1`, `I_MPI_OFFLOAD`, `FI_VERBS_IFACE`, Arc B-Series GPU workarounds
 
-To debug `config.v2.sh` on a real node:
+To debug `config.sh` on a real node:
 
 ```bash
 qsub -l filesystems=home -N cfg_debug -q debug pbs_debug_config.sh
@@ -204,7 +203,7 @@ qsub pbs_osu_bench.sh
 sbatch slurm_osu_bench.sh
 ```
 
-Both scripts source `config.v2.sh` for cluster/platform detection and CPU binding, then source `osu_put_latency.sh` to build and run the benchmarks. Results are written to `results/<cluster>/osumb.put2.<jobid>/`.
+Both scripts source `config.sh` for cluster/platform detection and CPU binding, then source `osu_put_latency.sh` to build and run the benchmarks. Results are written to `results/<cluster>/osumb.put2.<jobid>/`.
 
 ### Build Control
 

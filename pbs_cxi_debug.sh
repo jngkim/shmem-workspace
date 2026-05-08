@@ -18,7 +18,7 @@ JOB_NAME=${PBS_JOBNAME:-osumb}
 TIMESTAMP=$(date +%Y%m%d)
 
 source ${HOME}/shmem-workspace/cpu_bind.sh exclude
-source ${HOME}/shmem-workspace/config.v2.sh
+source ${HOME}/shmem-workspace/config.sh
 
 out_dir=${HOME}/shmem-workspace/results/${CLUSTER}/${JOB_NAME}.${JOBID}
 mkdir -p ${out_dir}
