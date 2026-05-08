@@ -34,9 +34,21 @@ cp $PBS_NODEFILE ${out_dir}/hostfile
 export NNODES=${nnodes}
 
 export BASE=${BASE:-${HOME}/shmem-workspace/build/latest}
-source ${BASE}/setup_sos_ofi.sh
 
 OSU_BUILD=${OSU_BUILD:-${HOME}/shmem-workspace/build/osu-bench}
+
+export SOS_INSTALL=${SOS_INSTALL:-${HOME}/shmem-workspace/build/latest/install/sos}
+export LD_LIBRARY_PATH=${SOS_INSTALL}/lib:$LD_LIBRARY_PATH
+
+export SHMEM_DEBUG=1
+echo "========= SHMEM_DEBUG=1  ========" | tee -a ${out_dir}/env.txt
+for m in put_mr; do
+  ppn=2
+  nranks=$(( nnodes * ppn ))
+  shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
+  mpirun -np ${nranks} -ppn ${ppn} ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/env.txt
+done
+unset SHMEM_DEBUG
 
 # BounceBuffer size
 BBSIZE=( 0 512 1024 2048 4096 8192 16384)
