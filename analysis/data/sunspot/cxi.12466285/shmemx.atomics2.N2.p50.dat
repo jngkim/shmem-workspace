@@ -1,0 +1,3 @@
+# OSU OpenSHMEM Int/Long Atomic Operation Rate Test
+# Operation                Million ops/s        Latency (us)
+shmem_int_fadd                     14.21                3.52

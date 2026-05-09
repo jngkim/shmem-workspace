@@ -1,0 +1,691 @@
+=== x1922c5s7b0n0 === (8 NICs)
+atu_cache_hit_base_page_size_0:
+  cxi0: 944071866
+  cxi1: 936877782
+  cxi2: 937882967
+  cxi3: 934858805
+  cxi4: 934759074
+  cxi5: 938306224
+  cxi6: 936723195
+  cxi7: 938897430
+  total: 7502377343
+atu_cache_miss_0:
+  cxi0: 19267918
+  cxi1: 11870903
+  cxi2: 12355265
+  cxi3: 8421290
+  cxi4: 7630915
+  cxi5: 13638563
+  cxi6: 11212201
+  cxi7: 15728686
+  total: 100125741
+ixe_disp_amo_events:
+  cxi0: 53148
+  cxi1: 30696
+  cxi2: 32114
+  cxi3: 30845
+  cxi4: 49686
+  cxi5: 31886
+  cxi6: 30878
+  cxi7: 31892
+  total: 291145
+ixe_disp_lpe_amos:
+  cxi0: 53148
+  cxi1: 30696
+  cxi2: 32114
+  cxi3: 30845
+  cxi4: 49686
+  cxi5: 31886
+  cxi6: 30878
+  cxi7: 31892
+  total: 291145
+ixe_disp_lpe_amos_ok:
+  cxi0: 53148
+  cxi1: 30696
+  cxi2: 32114
+  cxi3: 30845
+  cxi4: 49686
+  cxi5: 31886
+  cxi6: 30878
+  cxi7: 31892
+  total: 291145
+pct_retry_trs_put:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+mst_stalled_waiting_put_crdts:
+  cxi0: 501
+  cxi1: 501
+  cxi2: 538
+  cxi3: 498
+  cxi4: 458
+  cxi5: 568
+  cxi6: 526
+  cxi7: 517
+  total: 4107
+hni_sts_tx_ok_octets:
+  cxi0: 42921924974171
+  cxi1: 44310720351360
+  cxi2: 24614075144297
+  cxi3: 23881107864707
+  cxi4: 23951820022239
+  cxi5: 24548709173198
+  cxi6: 42744344888731
+  cxi7: 44382547409695
+  total: 271355249828398
+hni_sts_rx_ok_octets:
+  cxi0: 43754051229350
+  cxi1: 45178407397150
+  cxi2: 25395319220120
+  cxi3: 24687351565033
+  cxi4: 24136228481212
+  cxi5: 24743425379103
+  cxi6: 42909876227501
+  cxi7: 44552934710967
+  total: 275357594210436
+hni_tx_ok_64:
+  cxi0: 202396317
+  cxi1: 199486211
+  cxi2: 200412270
+  cxi3: 198950616
+  cxi4: 198468064
+  cxi5: 200542841
+  cxi6: 199651391
+  cxi7: 200979283
+  total: 1600886993
+hni_tx_ok_65_to_127:
+  cxi0: 42265
+  cxi1: 15455
+  cxi2: 16519
+  cxi3: 15795
+  cxi4: 44305
+  cxi5: 22218
+  cxi6: 22041
+  cxi7: 22880
+  total: 201478
+hni_tx_ok_128_to_255:
+  cxi0: 387
+  cxi1: 162
+  cxi2: 2328
+  cxi3: 2293
+  cxi4: 44
+  cxi5: 69
+  cxi6: 1275
+  cxi7: 1314
+  total: 7872
+hni_tx_ok_256_to_511:
+  cxi0: 966
+  cxi1: 1122
+  cxi2: 43132
+  cxi3: 43474
+  cxi4: 524
+  cxi5: 898
+  cxi6: 1531
+  cxi7: 1875
+  total: 93522
+hni_tx_ok_512_to_1023:
+  cxi0: 1483
+  cxi1: 807
+  cxi2: 2413
+  cxi3: 2011
+  cxi4: 646
+  cxi5: 1210
+  cxi6: 2262
+  cxi7: 2823
+  total: 13655
+hni_tx_ok_1024_to_2047:
+  cxi0: 10526
+  cxi1: 6054
+  cxi2: 3004
+  cxi3: 976
+  cxi4: 2417
+  cxi5: 6333
+  cxi6: 2829
+  cxi7: 3846
+  total: 35985
+hni_tx_ok_4096_to_8191:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+hni_tx_ok_8192_to_max:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+hni_rx_ok_64:
+  cxi0: 189132040
+  cxi1: 186814620
+  cxi2: 187116269
+  cxi3: 186084309
+  cxi4: 185884634
+  cxi5: 187297853
+  cxi6: 186681595
+  cxi7: 187734336
+  total: 1496745656
+hni_rx_ok_65_to_127:
+  cxi0: 234621
+  cxi1: 204343
+  cxi2: 213174
+  cxi3: 207019
+  cxi4: 216395
+  cxi5: 201454
+  cxi6: 198036
+  cxi7: 202254
+  total: 1677296
+hni_rx_ok_128_to_255:
+  cxi0: 42107
+  cxi1: 40057
+  cxi2: 44202
+  cxi3: 43187
+  cxi4: 40136
+  cxi5: 42173
+  cxi6: 42369
+  cxi7: 43395
+  total: 337626
+hni_rx_ok_256_to_511:
+  cxi0: 14423
+  cxi1: 14015
+  cxi2: 56940
+  cxi3: 56794
+  cxi4: 13635
+  cxi5: 14512
+  cxi6: 15055
+  cxi7: 15907
+  total: 201281
+hni_rx_ok_512_to_1023:
+  cxi0: 22184
+  cxi1: 20735
+  cxi2: 22972
+  cxi3: 21955
+  cxi4: 20576
+  cxi5: 22191
+  cxi6: 22758
+  cxi7: 23337
+  total: 176708
+hni_rx_ok_1024_to_2047:
+  cxi0: 31885
+  cxi1: 26532
+  cxi2: 24884
+  cxi3: 22250
+  cxi4: 22739
+  cxi5: 27412
+  cxi6: 23881
+  cxi7: 25777
+  total: 205360
+hni_rx_ok_4096_to_8191:
+  cxi0: 18
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 18
+hni_rx_ok_8192_to_max:
+  cxi0: 92
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 92
+hni_llr_tx_replay_event:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+hni_llr_rx_replay_event:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+hni_llr_tx_nack_ctl_os:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+hni_llr_rx_nack_ctl_os:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+hni_llr_tx_discard:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+pct_rsp_err_rcvd:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 11
+  cxi3: 13
+  cxi4: 0
+  cxi5: 0
+  cxi6: 14
+  cxi7: 14
+  total: 52
+pct_rsp_dropped_timeout:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+pct_rsp_dropped_try:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+pct_bad_seq_nacks:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 4
+  cxi3: 7
+  cxi4: 0
+  cxi5: 0
+  cxi6: 6
+  cxi7: 6
+  total: 23
+pct_no_trs_nacks:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+ixe_rx_pkt_drop_pct:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+ixe_rx_pkt_drop_ixe_parser:
+  cxi0: 0
+  cxi1: 0
+  cxi2: 0
+  cxi3: 0
+  cxi4: 0
+  cxi5: 0
+  cxi6: 0
+  cxi7: 0
+  total: 0
+pct_req_rsp_latency_0:
+  cxi0: 957480
+  cxi1: 928411
+  cxi2: 191776
+  cxi3: 189825
+  cxi4: 66341
+  cxi5: 62674
+  cxi6: 190384
+  cxi7: 198451
+  total: 2785342
+pct_req_rsp_latency_1:
+  cxi0: 952826
+  cxi1: 980845
+  cxi2: 494475
+  cxi3: 492374
+  cxi4: 289056
+  cxi5: 312608
+  cxi6: 564740
+  cxi7: 575848
+  total: 4662772
+pct_req_rsp_latency_2:
+  cxi0: 1638907
+  cxi1: 1682641
+  cxi2: 1314552
+  cxi3: 1319115
+  cxi4: 1145964
+  cxi5: 1214705
+  cxi6: 1341371
+  cxi7: 1360006
+  total: 11017261
+pct_req_rsp_latency_3:
+  cxi0: 4243055
+  cxi1: 4223599
+  cxi2: 4253015
+  cxi3: 4254198
+  cxi4: 4152955
+  cxi5: 4136764
+  cxi6: 4184707
+  cxi7: 4181371
+  total: 33629664
+pct_req_rsp_latency_4:
+  cxi0: 5605935
+  cxi1: 5567056
+  cxi2: 5719317
+  cxi3: 5702448
+  cxi4: 5694750
+  cxi5: 5603380
+  cxi6: 5701174
+  cxi7: 5673932
+  total: 45267992
+pct_req_rsp_latency_5:
+  cxi0: 5132367
+  cxi1: 5077470
+  cxi2: 5156271
+  cxi3: 5141947
+  cxi4: 5119614
+  cxi5: 5079593
+  cxi6: 5166070
+  cxi7: 5123509
+  total: 40996841
+pct_req_rsp_latency_6:
+  cxi0: 5050779
+  cxi1: 4960919
+  cxi2: 5011047
+  cxi3: 4985844
+  cxi4: 4967160
+  cxi5: 4974237
+  cxi6: 5040100
+  cxi7: 4998280
+  total: 39988366
+pct_req_rsp_latency_7:
+  cxi0: 5404635
+  cxi1: 5140206
+  cxi2: 5278144
+  cxi3: 5127940
+  cxi4: 5074745
+  cxi5: 5202247
+  cxi6: 5225969
+  cxi7: 5250878
+  total: 41704764
+pct_req_rsp_latency_8:
+  cxi0: 5417230
+  cxi1: 5289458
+  cxi2: 5394579
+  cxi3: 5281398
+  cxi4: 5257296
+  cxi5: 5365819
+  cxi6: 5396540
+  cxi7: 5396477
+  total: 42798797
+pct_req_rsp_latency_9:
+  cxi0: 5506830
+  cxi1: 5440516
+  cxi2: 5527127
+  cxi3: 5452683
+  cxi4: 5442626
+  cxi5: 5490221
+  cxi6: 5532006
+  cxi7: 5554989
+  total: 43946998
+pct_req_rsp_latency_10:
+  cxi0: 5701859
+  cxi1: 5632666
+  cxi2: 5708892
+  cxi3: 5661429
+  cxi4: 5651286
+  cxi5: 5688901
+  cxi6: 5719177
+  cxi7: 5731387
+  total: 45495597
+pct_req_rsp_latency_11:
+  cxi0: 5918465
+  cxi1: 5847711
+  cxi2: 5907937
+  cxi3: 5866660
+  cxi4: 5875236
+  cxi5: 5900563
+  cxi6: 5925626
+  cxi7: 5929218
+  total: 47171416
+pct_req_rsp_latency_12:
+  cxi0: 6124413
+  cxi1: 6048722
+  cxi2: 6116165
+  cxi3: 6070272
+  cxi4: 6099363
+  cxi5: 6116878
+  cxi6: 6128717
+  cxi7: 6167753
+  total: 48872283
+pct_req_rsp_latency_13:
+  cxi0: 6309885
+  cxi1: 6231906
+  cxi2: 6296497
+  cxi3: 6260580
+  cxi4: 6290572
+  cxi5: 6308259
+  cxi6: 6319188
+  cxi7: 6317005
+  total: 50333892
+pct_req_rsp_latency_14:
+  cxi0: 6463034
+  cxi1: 6372868
+  cxi2: 6447005
+  cxi3: 6406860
+  cxi4: 6444285
+  cxi5: 6458535
+  cxi6: 6467623
+  cxi7: 6445298
+  total: 51505508
+pct_req_rsp_latency_15:
+  cxi0: 6554767
+  cxi1: 6480738
+  cxi2: 6560272
+  cxi3: 6528783
+  cxi4: 6562890
+  cxi5: 6580240
+  cxi6: 6583442
+  cxi7: 6559185
+  total: 52410317
+pct_req_rsp_latency_16:
+  cxi0: 6615339
+  cxi1: 6538211
+  cxi2: 6634943
+  cxi3: 6613198
+  cxi4: 6620765
+  cxi5: 6644787
+  cxi6: 6654761
+  cxi7: 6645610
+  total: 52967614
+pct_req_rsp_latency_17:
+  cxi0: 6677143
+  cxi1: 6588989
+  cxi2: 6679886
+  cxi3: 6676027
+  cxi4: 6651474
+  cxi5: 6679319
+  cxi6: 6695819
+  cxi7: 6712896
+  total: 53361553
+pct_req_rsp_latency_18:
+  cxi0: 6661979
+  cxi1: 6544659
+  cxi2: 6659899
+  cxi3: 6651394
+  cxi4: 6620500
+  cxi5: 6644383
+  cxi6: 6646628
+  cxi7: 6695043
+  total: 53124485
+pct_req_rsp_latency_19:
+  cxi0: 6505605
+  cxi1: 6404740
+  cxi2: 6537940
+  cxi3: 6527329
+  cxi4: 6518268
+  cxi5: 6533265
+  cxi6: 6523698
+  cxi7: 6563471
+  total: 52114316
+pct_req_rsp_latency_20:
+  cxi0: 6313437
+  cxi1: 6222449
+  cxi2: 6371959
+  cxi3: 6345218
+  cxi4: 6369712
+  cxi5: 6366766
+  cxi6: 6346043
+  cxi7: 6402530
+  total: 50738114
+pct_req_rsp_latency_21:
+  cxi0: 6084662
+  cxi1: 6001211
+  cxi2: 6143268
+  cxi3: 6114096
+  cxi4: 6145335
+  cxi5: 6151506
+  cxi6: 6116489
+  cxi7: 6174484
+  total: 48931051
+pct_req_rsp_latency_22:
+  cxi0: 5839248
+  cxi1: 5771967
+  cxi2: 5905006
+  cxi3: 5869324
+  cxi4: 5909062
+  cxi5: 5918042
+  cxi6: 5869698
+  cxi7: 5913404
+  total: 46995751
+pct_req_rsp_latency_23:
+  cxi0: 5581053
+  cxi1: 5522590
+  cxi2: 5642943
+  cxi3: 5602818
+  cxi4: 5644918
+  cxi5: 5659532
+  cxi6: 5602634
+  cxi7: 5635719
+  total: 44892207
+pct_req_rsp_latency_24:
+  cxi0: 5301225
+  cxi1: 5249553
+  cxi2: 5358198
+  cxi3: 5321781
+  cxi4: 5363215
+  cxi5: 5380844
+  cxi6: 5316416
+  cxi7: 5344974
+  total: 42636206
+pct_req_rsp_latency_25:
+  cxi0: 4996941
+  cxi1: 4955403
+  cxi2: 5048733
+  cxi3: 5009020
+  cxi4: 5050812
+  cxi5: 5070926
+  cxi6: 5010541
+  cxi7: 5033711
+  total: 40176087
+pct_req_rsp_latency_26:
+  cxi0: 4678523
+  cxi1: 4639385
+  cxi2: 4725823
+  cxi3: 4688556
+  cxi4: 4729902
+  cxi5: 4749848
+  cxi6: 4680528
+  cxi7: 4711566
+  total: 37604131
+pct_req_rsp_latency_27:
+  cxi0: 4349495
+  cxi1: 4310930
+  cxi2: 4393667
+  cxi3: 4356390
+  cxi4: 4401787
+  cxi5: 4419400
+  cxi6: 4342191
+  cxi7: 4388854
+  total: 34962714
+pct_req_rsp_latency_28:
+  cxi0: 4019206
+  cxi1: 3989470
+  cxi2: 4052706
+  cxi3: 4036658
+  cxi4: 4069345
+  cxi5: 4097647
+  cxi6: 4021120
+  cxi7: 4051693
+  total: 32337845
+pct_req_rsp_latency_29:
+  cxi0: 3710547
+  cxi1: 3688650
+  cxi2: 3734795
+  cxi3: 3722248
+  cxi4: 3747842
+  cxi5: 3788444
+  cxi6: 3705671
+  cxi7: 3740597
+  total: 29838794
+pct_req_rsp_latency_30:
+  cxi0: 3418062
+  cxi1: 3406757
+  cxi2: 3432883
+  cxi3: 3429946
+  cxi4: 3444447
+  cxi5: 3482531
+  cxi6: 3412764
+  cxi7: 3457997
+  total: 27485387
+pct_req_rsp_latency_31:
+  cxi0: 31342818
+  cxi1: 31091410
+  cxi2: 30342173
+  cxi3: 30191018
+  cxi4: 30379852
+  cxi5: 31185284
+  cxi6: 30251728
+  cxi7: 30756946
+  total: 245541229
