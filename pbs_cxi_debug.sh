@@ -17,8 +17,8 @@ JOBID=${PBS_JOBID%%.*}
 JOB_NAME=${PBS_JOBNAME:-osumb}
 TIMESTAMP=$(date +%Y%m%d)
 
-source ${HOME}/shmem-workspace/cpu_bind.sh exclude
 source ${HOME}/shmem-workspace/config.sh
+source ${HOME}/shmem-workspace/cpu_bind.sh exclude
 
 out_dir=${HOME}/shmem-workspace/results/${CLUSTER}/${JOB_NAME}.${JOBID}
 mkdir -p ${out_dir}
@@ -38,13 +38,6 @@ source ${BASE}/setup_sos_ofi.sh
 
 OSU_BUILD=${OSU_BUILD:-${HOME}/shmem-workspace/build/osu-bench}
 collect_=${HOME}/shmem-workspace/cxi_telemetry_snapshot.sh
-
-# create an array to select binding: 64:BIND64_N, 50:BIND2C 102:BIND1C
-PPN_LIST=(64 50 102)
-declare -A BINDINGS
-BINDINGS[64]=$BIND64_N
-BINDINGS[50]=$BIND2C
-BINDINGS[102]=$BIND1C
 
 # export FI_LOG_LEVEL=info 
 # export FI_LOG_PROV=cxi

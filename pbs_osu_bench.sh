@@ -17,8 +17,8 @@ JOBID=${PBS_JOBID%%.*}
 JOB_NAME=${PBS_JOBNAME:-osumb}
 TIMESTAMP=$(date +%Y%m%d)
 
-source ${HOME}/shmem-workspace/cpu_bind.sh exclude
 source ${HOME}/shmem-workspace/config.sh
+source ${HOME}/shmem-workspace/cpu_bind.sh exclude
 
 out_dir=${HOME}/shmem-workspace/results/${CLUSTER}/${JOB_NAME}.${JOBID}
 mkdir -p ${out_dir}
@@ -27,7 +27,8 @@ env | grep CLUSTER >> ${out_dir}/env.txt
 env | grep PLATFORM >> ${out_dir}/env.txt
 env | grep SLURM >> ${out_dir}/env.txt
 env | grep FI | grep -v LMOD  >> ${out_dir}/env.txt
-cp $PBS_NODEFILE ${out_dir}/hostfile
+#cp $PBS_NODEFILE ${out_dir}/hostfile
+cat $PBS_NODEFILE |  cut -d '.' -f 1 | tee -a ${out_dir}/hostfile
 
 export NNODES=${nnodes}
 

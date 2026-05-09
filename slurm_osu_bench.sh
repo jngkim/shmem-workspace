@@ -16,8 +16,8 @@ JOBID=${SLURM_JOB_ID%%.*}
 JOB_NAME=${SLURM_JOB_NAME:-osumb}
 TIMESTAMP=$(date +%Y%m%d)
 
-source ${HOME}/shmem-workspace/cpu_bind.sh
 source ${HOME}/shmem-workspace/config.sh
+source ${HOME}/shmem-workspace/cpu_bind.sh
 
 out_dir=${HOME}/shmem-workspace/results/${CLUSTER}/${JOB_NAME}.${JOBID}
 mkdir -p ${out_dir}

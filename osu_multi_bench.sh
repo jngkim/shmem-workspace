@@ -7,12 +7,6 @@ export _library_path=$LD_LIBRARY_PATH
 
 nnodes=${NNODES}
 
-PPN_LIST=(64 $BIND2C_MAX $BIND1C_MAX)
-declare -A BINDINGS
-BINDINGS[64]=$BIND64_N
-BINDINGS[$BIND2C_MAX]=$BIND2C
-BINDINGS[$BIND1C_MAX]=$BIND1C
-
 BENCH=(atomics barrier put_mr)
 
 mpi_exe=${OSU_BUILD}/mpi/collective/blocking/osu_barrier
@@ -26,10 +20,10 @@ done
 # sos tests
 echo "Adding SOS_OFI_LIB_PATH=${SOS_OFI_LIB_PATH}"
 export LD_LIBRARY_PATH=${SOS_OFI_LIB_PATH}:$_library_path
-if [[ "${PLATFORM}" == "ib" ]]; then
-  export FI_PROVIDER=verbs
-  #export FI_VERBS_IFACE="ib0"
-fi
+# if [[ "${PLATFORM}" == "ib" ]]; then
+#   export FI_PROVIDER=verbs
+#   #export FI_VERBS_IFACE="ib0"
+# fi
 
 if [[ "${DEBUG_AFFINITY}" == "1" ]]; then
   m=barrier
@@ -49,7 +43,7 @@ do
   for ppn in "${PPN_LIST[@]}"; do
   nranks=$(( nnodes * ppn ))
     echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap "
-    mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/sos.${m}.N${nnodes}.p${ppn}.dat 
+    timeout 300 mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/sos.${m}.N${nnodes}.p${ppn}.dat 
   done
 done
 
@@ -62,7 +56,7 @@ if [[ "${HAVE_SHMEMX}" -eq 1 ]]; then
     for ppn in "${PPN_LIST[@]}"; do
       nranks=$(( nnodes * ppn ))
       echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap "
-      mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.N${nnodes}.p${ppn}.dat 
+      timeout 300 mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.N${nnodes}.p${ppn}.dat 
     done
   done
 fi
@@ -76,8 +70,8 @@ if [[ -n "${SOS_UCX_INSTALL}" ]]; then
     shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
     for ppn in "${PPN_LIST[@]}"; do
       nranks=$(( nnodes * ppn ))
-      echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${mpi_exe} "
-      timeout 60 mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shmem_exe} | tee -a ${out_dir}/sos-ucx.${m}.N${nnodes}.p${ppn}.dat
+      echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} "
+      timeout 300 mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/sos-ucx.${m}.N${nnodes}.p${ppn}.dat
     done
   done
 fi

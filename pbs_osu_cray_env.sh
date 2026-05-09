@@ -17,8 +17,8 @@ JOBID=${PBS_JOBID%%.*}
 JOB_NAME=${PBS_JOBNAME:-osumb}
 TIMESTAMP=$(date +%Y%m%d)
 
-source ${HOME}/shmem-workspace/cpu_bind.sh exclude
 source ${HOME}/shmem-workspace/config.sh
+source ${HOME}/shmem-workspace/cpu_bind.sh exclude
 
 out_dir=${HOME}/shmem-workspace/results/${CLUSTER}/${JOB_NAME}.${JOBID}
 mkdir -p ${out_dir}
@@ -52,13 +52,6 @@ unset SHMEM_DEBUG
 
 # BounceBuffer size
 BBSIZE=( 0 512 1024 2048 4096 8192 16384)
-# Binding map
-PPN_LIST=(64 $BIND2C_MAX $BIND1C_MAX)
-declare -A BINDINGS
-BINDINGS[64]=$BIND64_N
-BINDINGS[$BIND2C_MAX]=$BIND2C
-BINDINGS[$BIND1C_MAX]=$BIND1C
-
 #for m in atomics barrier put_mr;
 for m in put_mr; do
   shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
