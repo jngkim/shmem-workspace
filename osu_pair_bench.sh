@@ -20,8 +20,6 @@ if [[ "${USE_I_MPI:-0}" -eq 1 ]]; then
   MPI_BIND2_N="${IMPI_BIND2_N}"
 fi
 
-export _library_path=$LD_LIBRARY_PATH
-
 if [[ "${DEBUG_AFFINITY}" == "1" ]]; then
   export I_MPI_DEBUG=5
   timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_C} ${mpi_put} 2>&1 | tee -a ${out_dir}/mpi.core.debug.dat
@@ -44,37 +42,37 @@ for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_C}
 for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_S} ${mpi_exe} >> ${out_dir}/mpi.barrier.socket.dat ; sleep 2 ; done
 for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 1 ${MPI_BIND2_N} ${mpi_exe} >> ${out_dir}/mpi.barrier.node.dat   ; sleep 2 ; done
 
-echo "Adding SOS_OFI_LIB_PATH=${SOS_OFI_LIB_PATH}"
-export LD_LIBRARY_PATH=${SOS_OFI_LIB_PATH}:$_library_path
-if [[ "${PLATFORM}" == "ib" ]]; then
- export FI_PROVIDER=verbs
- if [[ "${CLUSTER}" == "florence" ]]; then
-   # Workaround for intra-node hangs
-   export FI_VERBS_IFACE="ib0"
- fi
-fi
+#if [[ "${PLATFORM}" == "ib" ]]; then
+# export FI_PROVIDER=verbs
+# if [[ "${CLUSTER}" == "florence" ]]; then
+#   # Workaround for intra-node hangs
+#   export FI_VERBS_IFACE="ib0"
+# fi
+#fi
 
 if [[ "${DEBUG_AFFINITY}" == "1" ]]; then
- export SHMEM_DEBUG=1
- timeout 10 mpirun -np 2 -ppn 2 ${BIND2_C} ${shm_put} heap 2>&1 | tee -a ${out_dir}/sos.core.debug.dat
- timeout 10 mpirun -np 2 -ppn 2 ${BIND2_S} ${shm_put} heap 2>&1 | tee -a ${out_dir}/sos.socket.debug.dat
- timeout 10 mpirun -np 2 -ppn 1 ${BIND2_N} ${shm_put} heap 2>&1 | tee -a ${out_dir}/sos.node.debug.dat
- unset SHMEM_DEBUG
- #check_bad_termination
+  export SHMEM_DEBUG=1
+  for X in "${SOS_LIST[@]}"; do
+    export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/$X/lib:$LD_LIBRARY_PATH"
+    timeout 60 mpirun ${CVARS} -np 2 -ppn 2 ${BIND2_C} ${shm_put} heap 2>&1 | tee -a ${out_dir}/$X.core.debug.dat
+    timeout 60 mpirun ${CVARS} -np 2 -ppn 2 ${BIND2_S} ${shm_put} heap 2>&1 | tee -a ${out_dir}/$X.socket.debug.dat
+    timeout 60 mpirun ${CVARS} -np 2 -ppn 1 ${BIND2_N} ${shm_put} heap 2>&1 | tee -a ${out_dir}/$X.node.debug.dat
+    #check_bad_termination
+  done
+  unset SHMEM_DEBUG
 fi
 
-for m in atomics barrier put;
-do
- shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
- echo "mpirun -np 2 -ppn 2 ${BIND2_C} osu_oshm_${m} heap "
- for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 2 ${BIND2_C} ${shm_exe} heap | tee -a ${out_dir}/sos.${m}.core.dat ; sleep 2 ; done
- echo "mpirun -np 2 -ppn 2 ${BIND2_S} osu_oshm_${m} heap "
- for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 2 ${BIND2_S} ${shm_exe} heap | tee -a ${out_dir}/sos.${m}.socket.dat ; sleep 2 ; done
- echo "mpirun -np 2 -ppn 1 ${BIND2_N} osu_oshm_${m} heap "
- for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 1 ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/sos.${m}.node.dat ; sleep 2 ; done
+for X in "${SOS_LIST[@]}"; do
+  export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/$X/lib:$LD_LIBRARY_PATH"
+  for m in atomics barrier put; do
+    shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
+    for a in $(seq 1 ${NREPS_SHM}); do timeout 60 mpirun ${CVARS} -np 2 -ppn 2 ${BIND2_C} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.core.dat ; sleep 2 ; done
+    for a in $(seq 1 ${NREPS_SHM}); do timeout 60 mpirun ${CVARS} -np 2 -ppn 2 ${BIND2_S} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.socket.dat ; sleep 2 ; done
+    for a in $(seq 1 ${NREPS_SHM}); do timeout 60 mpirun ${CVARS} -np 2 -ppn 1 ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.node.dat ; sleep 2 ; done
+  done
 done
 
-if [[ $CLUSTER == "aurora" ]]; then
+if [[ "${HAVE_SHMEMX}" -eq 1 ]]; then
   source ${HOME}/shmem-workspace/config.cray-shmem.sh 
   for m in atomics barrier put;
   do
@@ -86,19 +84,4 @@ if [[ $CLUSTER == "aurora" ]]; then
     echo "mpirun -np 2 -ppn 1 ${BIND2_N} osu_oshm_${m} heap "
     for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 1 ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.node.dat ; sleep 2 ; done
   done
-fi
-
-if [[ -n "${SOS_UCX_INSTALL}" ]]; then
-  export LD_LIBRARY_PATH=${SOS_UCX_INSTALL}/lib:$_library_path
-  for m in atomics barrier put;
-  do
-    shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
-    echo "mpirun -np 2 -ppn 2 ${BIND2_C} osu_oshm_${m} heap "
-    for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 2 ${BIND2_C} ${shm_exe} heap | tee -a ${out_dir}/sos-ucx.${m}.core.dat ; sleep 2 ; done
-    echo "mpirun -np 2 -ppn 2 ${BIND2_S} osu_oshm_${m} heap "
-    for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 2 ${BIND2_S} ${shm_exe} heap | tee -a ${out_dir}/sos-ucx.${m}.socket.dat ; sleep 2 ; done
-    echo "mpirun -np 2 -ppn 1 ${BIND2_N} osu_oshm_${m} heap "
-    for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 1 ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/sos-ucx.${m}.node.dat ; sleep 2 ; done
-  done
-  export LD_LIBRARY_PATH=$_library_path
 fi

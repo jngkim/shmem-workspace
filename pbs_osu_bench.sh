@@ -33,7 +33,8 @@ cat $PBS_NODEFILE |  cut -d '.' -f 1 | tee -a ${out_dir}/hostfile
 export NNODES=${nnodes}
 
 export BASE=${BASE:-${HOME}/shmem-workspace/build/latest}
-source ${BASE}/setup_sos_ofi.sh
+
+declare -ax SOS_LIST=(sos sos-xpmem sos-cma)
 
 if [[ "$JOB_NAME" == *"pair"* ]]; then
   echo "Running two-rank benchmarks"
