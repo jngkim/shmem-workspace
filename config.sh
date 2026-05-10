@@ -41,7 +41,7 @@ case "${CLUSTER}" in
   *) # check if macOS
       if [[ "$(uname)" == "Darwin" ]]; then
           PLATFORM=mac
-      else if [[ "$(uname -s)" == "Linux" ]]; then
+      elif [[ "$(uname -s)" == "Linux" ]]; then
           PLATFORM=linux
       else
           PLATFORM=unknown
