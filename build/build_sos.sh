@@ -26,35 +26,43 @@ build_ofi() {
     make install
 }
 
-SOS_COMPILERS="CXX=mpicxx CC=mpicc"
-SOS_PMI_FLAG="--enable-pmi-mpi"
-SOS_XPMEM_FLAG=""
-if [[ "${OFI_INSTALL}" == *"cray"* ]]; then
-    # On Cray/CXI systems, XPMEM and CXI can conflict for intra-node transfers 
-    # — SOS uses XPMEM for shared-memory transport between ranks on the same
-    # node, but when combined with CXI's memory registration model it can
-    # deadlock during shmem_init or collectives.
-    # with CXI's memory registration model it can deadlock during shmem_init or collectives.
-    if [[ "${CLUSTER}" == *"borealis"* ]]; then
-      SOS_XPMEM_FLAG="--with-xpmem=/usr/lib"
+if [[ "${PLATFORM}" != *"mac"* ]]; then
+    SOS_COMPILERS="CXX=mpicxx CC=mpicc"
+    SOS_PMI_FLAG="--enable-pmi-mpi"
+    SOS_XPMEM_FLAG=""
+    if [[ "${OFI_INSTALL}" == *"cray"* ]]; then
+        # On Cray/CXI systems, XPMEM and CXI can conflict for intra-node transfers 
+        # — SOS uses XPMEM for shared-memory transport between ranks on the same
+        # node, but when combined with CXI's memory registration model it can
+        # deadlock during shmem_init or collectives.
+        # with CXI's memory registration model it can deadlock during shmem_init or collectives.
+        if [[ "${CLUSTER}" == *"borealis"* ]]; then
+            SOS_XPMEM_FLAG="--with-xpmem=/usr/lib"
+        fi
+        SOS_OFI_MR="--enable-ofi-mr=basic --enable-mr-endpoint --enable-ofi-manual-progress"
+    else
+        # 2026-04-06 on anbmg and florence
+        # add --with-cma to improve on-node perf
+        # drop --disable-bounce-buffers
+        SOS_OFI_MR="--with-cma --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling"
     fi
-    SOS_OFI_MR="--enable-ofi-mr=basic --enable-mr-endpoint --enable-ofi-manual-progress"
+
+    SOS_HMEM_FLAG="--enable-ofi-hmem"
+
+    if [[ "${CLUSTER}" == *"anbmg"* ]]; then
+        SOS_HMEM_FLAG=""
+    fi
+
+    if [[ "$(hostname)" == *"tpi"* ]]; then
+        SOS_HMEM_FLAG=""
+        SOS_OFI_MR=""
+    fi
 else
-    # 2026-04-06 on anbmg and florence
-    # add --with-cma to improve on-node perf
-    # drop --disable-bounce-buffers
-    SOS_OFI_MR="--with-cma --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling"
-fi
-
-SOS_HMEM_FLAG="--enable-ofi-hmem"
-
-if [[ "${CLUSTER}" == *"anbmg"* ]]; then
-    SOS_HMEM_FLAG=""
-fi
-
-if [[ "$(hostname)" == *"tpi"* ]]; then
-    SOS_HMEM_FLAG=""
-    SOS_OFI_MR=""
+    # On macOS, use homebrew g++-15
+    extra_options="--enable-dlopen --disable-cxx" 
+    SOS_COMPILERS="CXX=/opt/homebrew/bin/g++-15 CC=/opt/homebrew/bin/gcc-15"
+    SOS_PMI_FLAG="--enable-pmi-simple"
+    SOS_OFI_MR="--enable-ofi-mr=basic --with-hwloc=/opt/homebrew"
 fi
 
 build_sos_ofi() {
@@ -74,7 +82,7 @@ build_sos_ofi() {
     make -j
     make install
 
-    head config.log > ${OSO_INSTALL}/config.log
+    head config.log > ${SOS_INSTALL}/config.log
 }
 
 if [[ "${SKIP_OFI_BUILD:-0}" != "1" ]] && [ ! -d ${OFI_INSTALL} ]; then

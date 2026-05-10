@@ -38,8 +38,14 @@ case "${CLUSTER}" in
   florence|anbmg)
     PLATFORM=ib
     ;;
-  *)
-    PLATFORM=unknown
+  *) # check if macOS
+      if [[ "$(uname)" == "Darwin" ]]; then
+          PLATFORM=mac
+      else if [[ "$(uname -s)" == "Linux" ]]; then
+          PLATFORM=linux
+      else
+          PLATFORM=unknown
+      fi
     ;;
 esac
 export PLATFORM
