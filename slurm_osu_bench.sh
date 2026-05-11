@@ -37,6 +37,10 @@ unset I_MPI_OFFLOAD
 unset I_MPI_OFFLOAD_RDMA
 export NNODES=${nnodes}
 
+declare -ax SOS_LIST=(sos sos-ucx)
+
+export LD_LIBRARY_PATH=$OFI_INSTALL/lib:$LD_LIBRARY_PATH
+
 if [[ "$JOB_NAME" == *"pair"* ]]; then
   echo "Running two-rank benchmarks"
   source ${HOME}/shmem-workspace/osu_pair_bench.sh
