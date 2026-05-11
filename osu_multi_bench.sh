@@ -28,8 +28,8 @@ if [[ "${DEBUG_AFFINITY}" == "1" ]]; then
   export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/$X/lib:$LD_LIBRARY_PATH"
   for ppn in "${PPN_LIST[@]}"; do
     nranks=$(( nnodes * ppn ))
-    echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${mpi_exe} "
-    mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shmem_exe} | tee -a ${out_dir}/sos.${m}.N${nnodes}.p${ppn}.debug.dat
+    echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${mpi_exe} "
+    mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shmem_exe} | tee -a ${out_dir}/sos.${m}.N${nnodes}.p${ppn}.debug.dat
   done
   unset SHMEM_DEBUG
 fi
@@ -40,22 +40,24 @@ for X in "${SOS_LIST[@]}"; do
     shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
     for ppn in "${PPN_LIST[@]}"; do
       nranks=$(( nnodes * ppn ))
-      echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap "
-      timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.N${nnodes}.p${ppn}.dat 
+      echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shm_exe} heap "
+      timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.N${nnodes}.p${ppn}.dat 
     done
   done
 done
 
 if [[ "${HAVE_SHMEMX}" -eq 1 ]]; then
-  export LD_LIBRARY_PATH=$_library_path
+  export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/shmemx/lib:$LD_LIBRARY_PATH"
   source ${HOME}/shmem-workspace/config.cray-shmem.sh
   for m in "${BENCH[@]}";
   do
     shm_exe=${OSU_BUILD}/shmemx/osu_oshm_${m}
     for ppn in "${PPN_LIST[@]}"; do
       nranks=$(( nnodes * ppn ))
-      echo "mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap "
-      timeout 300 mpirun -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.N${nnodes}.p${ppn}.dat 
+      # if SHMEM_OFI_NIC_POLICY=USER, set NVAR; otherwise, empty (use default provider selection)
+      NVAR=$([[ "${SHMEM_OFI_NIC_POLICY}" == "USER" ]] && echo "-genv SHMEM_OFI_NIC_MAPPING=0:0-$((ppn/2-1));4:$((ppn/2))-$((ppn-1))")
+      echo "mpirun$ ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap "
+      timeout 300 mpirun ${CVARS} ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.N${nnodes}.p${ppn}.dat
     done
   done
 fi
