@@ -47,7 +47,6 @@ for X in "${SOS_LIST[@]}"; do
 done
 
 if [[ "${HAVE_SHMEMX}" -eq 1 ]]; then
-  export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/shmemx/lib:$LD_LIBRARY_PATH"
   source ${HOME}/shmem-workspace/config.cray-shmem.sh
   for m in "${BENCH[@]}";
   do
@@ -56,8 +55,8 @@ if [[ "${HAVE_SHMEMX}" -eq 1 ]]; then
       nranks=$(( nnodes * ppn ))
       # if SHMEM_OFI_NIC_POLICY=USER, set NVAR; otherwise, empty (use default provider selection)
       NVAR=$([[ "${SHMEM_OFI_NIC_POLICY}" == "USER" ]] && echo "-genv SHMEM_OFI_NIC_MAPPING=0:0-$((ppn/2-1));4:$((ppn/2))-$((ppn-1))")
-      echo "mpirun$ ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap "
-      timeout 300 mpirun ${CVARS} ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.N${nnodes}.p${ppn}.dat
+      echo "mpirun ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap "
+      timeout 300 mpirun ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.N${nnodes}.p${ppn}.dat
     done
   done
 fi

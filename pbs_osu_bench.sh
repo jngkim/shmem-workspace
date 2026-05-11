@@ -34,7 +34,12 @@ export NNODES=${nnodes}
 
 export BASE=${BASE:-${HOME}/shmem-workspace/build/latest}
 
-declare -ax SOS_LIST=(sos sos-xpmem sos-cma)
+#declare -ax SOS_LIST=(sos sos-cma)
+declare -ax SOS_LIST=(sos)
+
+export NIC_MAPPER=${NIC_MAPPER:-}
+echo "INFO: NIC_MAPPER=${NIC_MAPPER}"
+echo "INFO: SHMEM_OFI_NIC_POLICY=${SHMEM_OFI_NIC_POLICY}"
 
 if [[ "$JOB_NAME" == *"pair"* ]]; then
   echo "Running two-rank benchmarks"

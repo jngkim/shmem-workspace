@@ -75,7 +75,7 @@ case "${PLATFORM}" in
     #export FI_MR_CACHE_MAX_SIZE=-1
     #export FI_CXI_RDZV_THRESHOLD=12288
     #export FI_CXI_RDZV_EAGER_SIZE=8192
-    #NO: export SHMEM_BOUNCE_SIZE=8192
+    #export SHMEM_BOUNCE_SIZE=8192
     ;;
   ib)
     # InfiniBand / verbs — Florence
