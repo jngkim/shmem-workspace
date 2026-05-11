@@ -47,19 +47,23 @@ export BIND8_N="--cpu-bind list:1-12:14-25:27-38:40-51:53-64:66-77:79-90:92-103"
 m=atomics2
 shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
 
+nic_mapper=${NIC_MAPPER:-}
+
 echo "SOS"
 export SHMEM_DEBUG=1
-mpirun -np ${nranks} -ppn ${ppn} ${BIND8_N}  ${shm_exe} heap int fadd
+mpirun -np ${nranks} -ppn ${ppn} ${BIND8_N} ${nic_mapper} ${shm_exe} heap int fadd
 export FI_LOG_LEVEL=debug 
+
 mpirun -np ${nranks} -ppn ${ppn} ${BIND8_N} \
 	-outfile-pattern sos.fadd.rank%r.out \
 	-errfile-pattern sos.fadd.rank%r.err \
-	${shm_exe} heap int fadd
+	${nic_mapper} ${shm_exe} heap int fadd
 
 echo "SHMEMX"
 source ${HOME}/shmem-workspace/config.cray-shmem.sh
 shm_exe=${OSU_BUILD}/shmemx/osu_oshm_${m}
-mpirun -np ${nranks} -ppn ${ppn} ${BIND8_N}  ${shm_exe} heap int fadd
+
+mpirun -np ${nranks} -ppn ${ppn} ${BIND8_N} ${shm_exe} heap int fadd
 export SHMEM_DEBUG_LEVEL=5 
 mpirun -np ${nranks} -ppn ${ppn} ${BIND8_N} \
 	-outfile-pattern shmemx.fadd.rank%r.out \

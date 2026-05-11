@@ -13,3 +13,11 @@ export LD_LIBRARY_PATH=${SMA_ROOT}/lib64:${PMI_ROOT}/lib:${DSMML_ROOT}/lib:$LD_L
 
 export SHMEM_USE_DSMML_SSHEAP=0
 export PALS_PMI=pmi
+
+# Force to use only one NIC per socket
+# export SHMEM_DEBUG_LEVEL=2
+# export SHMEM_DEBUG_CATEGORIES=nic
+# export SHMEM_OFI_NIC_POLICY=USER
+# export SHMEM_OFI_NIC_MAPPING="0:0-3;4:4-7"
+
+
