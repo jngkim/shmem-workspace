@@ -70,3 +70,7 @@ foreach(benchmark ${OSU_OPENSHMEM_BENCHMARKS})
     target_compile_definitions(${benchmark} PRIVATE OSHM_1_3)
     target_link_libraries(${benchmark} PRIVATE osu_openshmem_util)
 endforeach()
+
+add_executable(shm_bucket_sort shm_bucket_sort.cpp)
+target_link_libraries(shm_bucket_sort PRIVATE sos)
+
