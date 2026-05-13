@@ -20,7 +20,12 @@ build_ofi() {
     fi
     mkdir -p ${OFI_BUILD}
     cd ${OFI_BUILD}
-    ${OFI_SRC}/configure --prefix=${OFI_INSTALL} --disable-psm3
+    ${OFI_SRC}/configure --prefix=${OFI_INSTALL} \
+      --disable-rxd \
+      --disable-rxm \
+      --disable-udp \
+      --disable-usnic \
+      --disable-psm
 
     make -j
     make install
@@ -91,7 +96,20 @@ fi
 
 build_sos_ofi
 
-cat <<EOF > ${BASE}/setup_sos_ofi.sh
+cat <<EOF > ${BASE}/setup_ofi.sh
+#!/bin/bash
+export OFI_INSTALL=${OFI_INSTALL}
+
+if [[ ":\$LD_LIBRARY_PATH:" != *":\${OFI_INSTALL}/lib:"* ]]; then
+    export LD_LIBRARY_PATH=\${OFI_INSTALL}/lib:\$LD_LIBRARY_PATH
+    export FI_PROVIDER_PATH=\${OFI_INSTALL}/lib/libfabric:\$FI_PROVIDER_PATH
+    export PATH=\${OFI_INSTALL}/bin:\$PATH
+fi
+EOF
+chmod +x ${BASE}/setup_ofi.sh
+echo "Setup script created: ${BASE}/setup_ofi.sh"
+
+cat <<EOF > ${BASE}/setup_sos.sh
 #!/bin/bash
 # This script sets up the environment variables for SOS and OFI installations.
 export SOS_INSTALL=${SOS_INSTALL}
@@ -107,5 +125,5 @@ if [[ ":\$LD_LIBRARY_PATH:" != *":\${SOS_INSTALL}/lib:"* ]]; then
     export PATH=\${SOS_INSTALL}/bin:\$PATH
 fi
 EOF
-chmod +x ${BASE}/setup_sos_ofi.sh
-echo "Setup script created: ${BASE}/setup_sos_ofi.sh"
+chmod +x ${BASE}/setup_sos.sh
+echo "Setup script created: ${BASE}/setup_sos.sh"
