@@ -44,17 +44,18 @@ OSU_BUILD=${OSU_BUILD:-${HOME}/shmem-workspace/build/osu-bench}
 #
 min_bytes=512
 max_bytes=32768
-amo=50
-put=50
 
 X=sos
 export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/$X/lib:$LD_LIBRARY_PATH"
 shm_exe=${OSU_BUILD}/openshmem/cust_nail_clone
 for ppn in "${PPN_LIST[@]}"; do
   nranks=$(( nnodes * ppn ))
-  echo "SOS: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} "
-  timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} \
-	  ${shm_exe} heap  ${amo} ${put}
+  for put in 0 20 40 60 80 100; do
+    for amo in 0 20 40 60 80 100; do
+      echo "SOS: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} "
+      timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shm_exe} heap  ${amo} ${put}
+    done
+  done
 done
 
 source ${HOME}/shmem-workspace/config.cray-shmem.sh
@@ -63,7 +64,11 @@ for ppn in "${PPN_LIST[@]}"; do
   nranks=$(( nnodes * ppn ))
   # if SHMEM_OFI_NIC_POLICY=USER, set NVAR; otherwise, empty (use default provider selection)
   NVAR=$([[ "${SHMEM_OFI_NIC_POLICY}" == "USER" ]] && echo "-genv SHMEM_OFI_NIC_MAPPING=0:0-$((ppn/2-1));4:$((ppn/2))-$((ppn-1))")
-  echo "SHMEMX: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} "
-  timeout 300 mpirun ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap ${shm_exe} heap  ${amo} ${put}
+  for put in 0 20 40 60 80 100; do
+    for amo in 0 20 40 60 80 100; do
+      echo "SHMEMX: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} "
+      timeout 300 mpirun ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap ${shm_exe} heap  ${amo} ${put}
+    done
+  done
 done
 
