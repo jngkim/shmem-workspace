@@ -30,20 +30,20 @@ env | grep FI | grep -v LMOD  >> ${out_dir}/env.txt
 #cp $PBS_NODEFILE ${out_dir}/hostfile
 cat $PBS_NODEFILE |  cut -d '.' -f 1 | tee -a ${out_dir}/hostfile
 
-export NNODES=${nnodes}
-
 export BASE=${BASE:-${HOME}/shmem-workspace/build/latest}
 OSU_BUILD=${OSU_BUILD:-${HOME}/shmem-workspace/build/osu-bench}
+SOS_LIB=${SOS_LIB:-sos}
 
+# applicaion speicifc settings
+app=cust_nail_clone
 min_bytes=${MIN_BYTES:-1024}
 max_bytes=${MAX_BYTES:-8192}
-app=cust_nail_clone
+
+# skip PUT scan since it is expacted to be less critical than AMO scan
 PUT_LIST=(0)
 AMO_LIST=(0 20 40 60 80 100)
-#PUT_LIST=(0 20 40 60 80 100)
 
-X=sos
-export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/$X/lib:$LD_LIBRARY_PATH"
+export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/$SOS_LIB/lib:$LD_LIBRARY_PATH"
 shm_exe=${OSU_BUILD}/openshmem/${app}
 export NIC_MAPPER=""
 for ppn in 64  $BIND1C_MAX; do
@@ -51,7 +51,7 @@ for ppn in 64  $BIND1C_MAX; do
   for put in "${PUT_LIST[@]}"; do
     for amo in "${AMO_LIST[@]}"; do
       echo "SOS: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} NIC=8"
-      timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shm_exe} heap ${put} ${amo} ${min_bytes} ${max_bytes} \
+      timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shm_exe} ${opts} \
         | tee -a ${out_dir}/sos.nic8.N${nnodes}.p${ppn}.dat 
       done
   done
@@ -63,7 +63,8 @@ for ppn in 64  $BIND1C_MAX; do
   for put in "${PUT_LIST[@]}"; do
     for amo in "${AMO_LIST[@]}"; do
       echo "SOS: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} NIC=2"
-      timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shm_exe} heap ${put} ${amo} ${min_bytes} ${max_bytes} \
+      opts="heap ${put} ${amo} ${min_bytes} ${max_bytes}"
+      timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shm_exe} ${opts} \
         | tee -a ${out_dir}/sos.nic2.N${nnodes}.p${ppn}.dat 
       done
   done
@@ -78,7 +79,8 @@ for ppn in 64  $BIND1C_MAX; do
   for put in "${PUT_LIST[@]}"; do
     for amo in "${AMO_LIST[@]}"; do
       echo "SHMEMX: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} NIC=8"
-      timeout 300 mpirun ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap ${put} ${amo} ${min_bytes} ${max_bytes} \
+      opts="heap ${put} ${amo} ${min_bytes} ${max_bytes}"
+      timeout 300 mpirun ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} ${opts} \
         | tee -a ${out_dir}/shmemx.nic8.N${nnodes}.p${ppn}.dat
       done
   done
@@ -91,7 +93,8 @@ for ppn in 64  $BIND1C_MAX; do
   for put in "${PUT_LIST[@]}"; do
     for amo in "${AMO_LIST[@]}"; do
       echo "SHMEMX: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} NIC=2"
-      timeout 300 mpirun ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} heap ${put} ${amo} ${min_bytes} ${max_bytes} \
+      opts="heap ${put} ${amo} ${min_bytes} ${max_bytes}"
+      timeout 300 mpirun ${NVAR} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${shm_exe} ${opts} \
         | tee -a ${out_dir}/shmemx.nic2.N${nnodes}.p${ppn}.dat
     done
   done
