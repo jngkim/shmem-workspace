@@ -51,6 +51,7 @@ for ppn in 64  $BIND1C_MAX; do
   for put in "${PUT_LIST[@]}"; do
     for amo in "${AMO_LIST[@]}"; do
       echo "SOS: N=${nnodes} PPN=${ppn} AMO=${amo} PUT=${put} NIC=8"
+      opts="heap ${put} ${amo} ${min_bytes} ${max_bytes}"
       timeout 300 mpirun ${CVARS} -np ${nranks} -ppn ${ppn} ${BINDINGS[$ppn]} ${NIC_MAPPER} ${shm_exe} ${opts} \
         | tee -a ${out_dir}/sos.nic8.N${nnodes}.p${ppn}.dat 
       done
