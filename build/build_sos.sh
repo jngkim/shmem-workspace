@@ -58,9 +58,9 @@ if [[ "${PLATFORM}" != *"mac"* ]]; then
         SOS_HMEM_FLAG=""
     fi
 
-    if [[ "$(hostname)" == *"tpi"* ]]; then
+    if [[ "$(PLATFORM)" == *"linux"* ]]; then
         SOS_HMEM_FLAG=""
-        SOS_OFI_MR=""
+        SOS_OFI_MR="--enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling"
     fi
 else
     # On macOS, use homebrew g++-15
