@@ -63,13 +63,10 @@ set(OSU_OPENSHMEM_BENCHMARKS
     osu_oshm_get_overlap
     osu_oshm_atomics2
     cust_nail_clone
+    cust_nail_random
 )
 
 foreach(benchmark ${OSU_OPENSHMEM_BENCHMARKS})
     add_executable(${benchmark} ${benchmark}.c)
-    target_compile_definitions(${benchmark} PRIVATE OSHM_1_3)
     target_link_libraries(${benchmark} PRIVATE osu_openshmem_util)
 endforeach()
-
-#add_executable(shm_bucket_sort shm_bucket_sort.cpp)
-#target_link_libraries(shm_bucket_sort PRIVATE osu_openshmem_util)
