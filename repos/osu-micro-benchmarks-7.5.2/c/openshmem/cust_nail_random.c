@@ -187,7 +187,7 @@ void print_header_local(int myid, int call_amo, int random_dest)
     if (myid == 0) {
         fprintf(stdout, "\n");
         fprintf(stdout, HEADER);
-        fprintf(stdout, "# amo: %d, random_dest: %d, slots_pe: %d\n", call_amo, random_dest, MAX_SLOTS_PE);
+        fprintf(stdout, "# random_dest: %d, amo: %d, slots_pe: %d\n", random_dest, call_amo, MAX_SLOTS_PE);
         fprintf(stdout, "%-*s%*s%*s%*s\n", 20, "# Size (bytes)", FIELD_WIDTH,
                 "Operation", FIELD_WIDTH, "Million ops/s", FIELD_WIDTH,
                 "Latency (us)");
@@ -385,19 +385,14 @@ int main(int argc, char *argv[])
     msg_buffer = allocate_memory(v.me, use_heap);
     memset(msg_buffer, 0, sizeof(union data_types[OSHM_LOOP_ATOMIC]));
 
-    long raw_amo = (argc >= 2 + arg_off) ?
-                       parse_long(v.me, argv[1 + arg_off], "call_amo") :
-                       0;
-    long raw_random_dest =
-        (argc >= 3 + arg_off) ?
-            parse_long(v.me, argv[2 + arg_off], "random_dest") :
-            0;
+    long raw_random_dest = (argc >= 2 + arg_off) ?
+                           parse_long(v.me, argv[1 + arg_off], "random_dest") : 0;
+    long raw_amo = (argc >= 3 + arg_off) ?
+                           parse_long(v.me, argv[2 + arg_off], "call_amo") : 0;
     long raw_min = (argc >= 4 + arg_off) ?
-                       parse_long(v.me, argv[3 + arg_off], "min_bytes") :
-                       DEFAULT_MIN_BYTES;
+                           parse_long(v.me, argv[3 + arg_off], "min_bytes") : DEFAULT_MIN_BYTES;
     long raw_max = (argc >= 5 + arg_off) ?
-                       parse_long(v.me, argv[4 + arg_off], "max_bytes") :
-                       raw_min;
+                           parse_long(v.me, argv[4 + arg_off], "max_bytes") : raw_min;
 
     if (raw_min <= 0 || raw_min % 8 != 0) {
         if (v.me == 0)
