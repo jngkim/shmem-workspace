@@ -1,38 +1,51 @@
-#define BENCHMARK "Nail Clone: OpenSHMEM Fetching Atomic + Dependent Put Test"
+#define BENCHMARK "Nail Random: OpenSHMEM Fetching Atomic + Dependent Put Test"
 /*
- * cust_nail_clone — contention-configurable put + AMO benchmark
+ * cust_nail_random — put + optional AMO benchmark with configurable destination
+ *
+ * Each PE performs a timed loop of OSHM_LOOP_ATOMIC iterations. In each
+ * iteration the destination PE is either the fixed ring neighbor (random_dest=0)
+ * or chosen uniformly at random across all PEs (random_dest=1).
+ *
+ * When call_amo=1, each iteration issues a fetching atomic add (fetch-add) to
+ * a per-destination counter on the remote PE before the put. The value returned
+ * by the AMO (old_value) determines the put slot, creating a true read-after-
+ * write (RAW) dependency that serializes the put on the AMO result. Puts are
+ * scattered across MAX_SLOTS_PE slots per initiating PE; slot_offset
+ * (= me * MAX_SLOTS_PE) keeps each PE's writes in a distinct region of the
+ * destination buffer so initiators do not collide.
+ *
+ * When call_amo=0 (baseline), a plain put is issued with no AMO. The slot is
+ * derived from a local counter, measuring raw put throughput without AMO
+ * overhead.
+ *
+ * All PEs participate; there is no initiator/target split. After the timed
+ * loop each PE contributes its rate and latency to a global sum-reduce.
+ * Reported throughput is the aggregate across all PEs; reported latency is the
+ * per-PE average.
  *
  * Usage:
- *   cust_nail_clone <heap|global> [put_contention_pct] [amo_contention_pct]
- *                                 [min_bytes] [max_bytes]
+ *   cust_nail_random <heap|global> [random_dest] [call_amo]
+ *                                  [min_bytes] [max_bytes]
  *
- *   put_contention_pct  0-100. Percentage of puts that target slot 0 on PE 0
- *                       (hot/contended). Remaining puts target the fixed ring
- *                       neighbor (default) or rotate all-to-all (#define
- * ALLTOALL). Default: 0.
+ *   random_dest  0|1. When 1, each put targets a PE chosen uniformly at
+ *                random. When 0, the fixed ring neighbor is used. Default: 0.
  *
- *   amo_contention_pct  0-100. Percentage of AMOs that target buffer[0] on
- *                       PE 0 (hot/contended). Remaining AMOs target the fixed
- *                       ring neighbor (default) or rotate all-to-all
- *                       (#define ALLTOALL).  Default: 0.
+ *   call_amo     0|1. When 1, a fetching atomic add precedes every put,
+ *                creating an AMO->put RAW dependency. Default: 0.
  *
- *   min_bytes           Minimum put size in bytes. Must be a multiple of 8.
- *                       Default: 8.
+ *   min_bytes    Minimum put size in bytes. Must be a positive multiple of 8.
+ *                Default: 8.
  *
- *   max_bytes           Maximum put size in bytes. Must be a multiple of 8.
- *                       Sweep doubles from min to max.  Defaults to min_bytes
- *                       (i.e. a single size) when omitted.
+ *   max_bytes    Maximum put size in bytes. Must be a positive multiple of 8.
+ *                The benchmark sweeps sizes doubling from min_bytes up to
+ *                max_bytes. Defaults to min_bytes (single size) when omitted.
  *
  * Examples:
- *   cust_nail_clone heap                    -- 8-byte puts, no contention
- *   cust_nail_clone heap 50 0               -- 50% contended puts, 8-byte
- *   cust_nail_clone heap 100 100            -- fully contended, 8-byte
- *   cust_nail_clone heap 0 0 8 4096         -- size sweep 8..4096, no
- * contention cust_nail_clone heap 50 0 64 64         -- single 64-byte size,
- * 50% put contention
- *
- * All PEs participate; no pair split.  Contention ratio is exact and
- * deterministic: iteration i is contended when (i % 100) < pct.
+ *   cust_nail_random heap              -- 8-byte puts, ring neighbor, no AMO
+ *   cust_nail_random heap 1 0          -- random dest, no AMO
+ *   cust_nail_random heap 1 1          -- random dest with AMO dependency
+ *   cust_nail_random heap 0 0 8 4096   -- size sweep 8..4096, ring, no AMO
+ *   cust_nail_random heap 1 1 64 64    -- single 64-byte size, random + AMO
  */
 
 #include <shmem.h>
@@ -270,23 +283,14 @@ void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
 
         begin = TIME();
         for (i = 0; i < iterations; i++) {
-            /* Pick destination PE: random across all PEs, or fixed destination */
             int dest_pe = (random_dest) ? (int)(rand() % v.npes) : v.nxtpe;
             if (call_amo) {
-                /* Fetch-add the remote counter for dest_pe. The returned value
-                 * (old_value) is used to compute the put slot, creating a true
-                 * RAW dependency between the AMO and the following put. */
                 old_value =
                     shmem_atomic_fetch_add(&(buffer[dest_pe]), value, dest_pe);
-                /* Scatter puts across MAX_SLOTS_PE slots per originating PE.
-                 * slot_offset (= me * MAX_SLOTS_PE) separates initiators so
-                 * different PEs write to distinct regions of dst. */
                 size_t put_slot = old_value % MAX_SLOTS_PE + slot_offset;
                 shmem_long_put(&dst[put_slot * send_count], src, send_count,
                                dest_pe);
             } else {
-                /* Baseline: plain put with no AMO, all writes land on dst[0].
-                 * Measures raw put throughput without AMO overhead. */
                 size_t put_slot = dest_count[dest_pe] % MAX_SLOTS_PE + slot_offset;
                 shmem_long_put(&dst[put_slot * send_count], src, send_count, dest_pe);
             }
@@ -300,9 +304,9 @@ void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
 
     shmem_double_sum_reduce(SHMEM_TEAM_WORLD, sum_rate, rate, 1);
     shmem_double_sum_reduce(SHMEM_TEAM_WORLD, sum_lat, lat, 1);
-    shmem_int_sum_reduce(SHMEM_TEAM_WORLD, sum_dest_count, dest_count, v.npes);
-
     print_operation_rate(v.me, send_bytes, *sum_rate / 1e6, *sum_lat / v.npes);
+
+    //shmem_int_sum_reduce(SHMEM_TEAM_WORLD, sum_dest_count, dest_count, v.npes);
     //print_statistics(v.me, sum_dest_count, v.npes);
 
     shmem_free(dest_count);
