@@ -287,11 +287,11 @@ void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
             if (call_amo) {
                 old_value =
                     shmem_atomic_fetch_add(&(buffer[dest_pe]), value, dest_pe);
-                size_t put_slot = old_value % MAX_SLOTS_PE + slot_offset;
+                size_t put_slot = old_value % DST_SLOTS;
                 shmem_long_put(&dst[put_slot * send_count], src, send_count,
                                dest_pe);
             } else {
-                size_t put_slot = dest_count[dest_pe] % MAX_SLOTS_PE + slot_offset;
+                size_t put_slot = dest_count[dest_pe] % DST_SLOTS;
                 shmem_long_put(&dst[put_slot * send_count], src, send_count, dest_pe);
             }
             dest_count[dest_pe]++;
@@ -330,7 +330,7 @@ void benchmark(struct pe_vars v, union data_types *msg_buffer, int call_amo,
         shmem_global_exit(EXIT_FAILURE);
     }
 
-    long max_slots = v.npes * MAX_SLOTS_PE;
+    long max_slots = DST_SLOTS;
 
     long *src = (long *)shmem_malloc(max_bytes);
     long *dst = (long *)shmem_calloc(max_slots * (max_bytes / sizeof(long)), sizeof(long));
