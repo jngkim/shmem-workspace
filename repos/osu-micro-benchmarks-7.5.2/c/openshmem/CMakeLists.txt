@@ -64,6 +64,7 @@ set(OSU_OPENSHMEM_BENCHMARKS
     osu_oshm_atomics2
     cust_nail_clone
     cust_nail_random
+    cust_nail_random_bucket
 )
 
 foreach(benchmark ${OSU_OPENSHMEM_BENCHMARKS})

@@ -1,21 +1,21 @@
 #define BENCHMARK "Nail Random: OpenSHMEM Fetching Atomic + Dependent Put Test"
 /*
- * cust_nail_random — put + optional AMO benchmark with configurable destination
+ * cust_nail_random_bucket — bucketed put + optional AMO benchmark
  *
- * Each PE performs a timed loop of OSHM_LOOP_ATOMIC iterations. In each
- * iteration the destination PE is either the fixed ring neighbor (random_dest=0)
- * or chosen uniformly at random across all PEs (random_dest=1).
+ * The src buffer is divided into npes buckets of send_count = send_bytes /
+ * sizeof(long) longs each. The bucket for destination dest_pe is at
+ * src[dest_pe * send_count]. The main loop runs OSHM_LOOP_ATOMIC * send_count
+ * iterations, packing one element per step into the appropriate src_bucket.
+ * When a bucket fills (every send_count steps to the same destination PE), a
+ * put is issued.
  *
- * When call_amo=1, each iteration issues a fetching atomic add (fetch-add) to
- * a per-destination counter on the remote PE before the put. The value returned
- * by the AMO (old_value) determines the put slot (old_value % DST_SLOTS),
- * creating a true read-after-write (RAW) dependency that serializes the put on
- * the AMO result. Puts are scattered across DST_SLOTS shared slots in the
- * destination buffer.
+ * When call_amo=1, a fetching atomic add to a per-destination counter on the
+ * remote PE precedes each put. The value returned by the AMO (old_value)
+ * selects the remote slot (old_value % DST_SLOTS), creating a true
+ * read-after-write (RAW) dependency that serializes the put on the AMO result.
  *
- * When call_amo=0 (baseline), a plain put is issued with no AMO. The slot is
- * derived from a local counter, measuring raw put throughput without AMO
- * overhead.
+ * When call_amo=0 (baseline), a local counter selects the remote slot,
+ * measuring raw bucketed put throughput without AMO overhead.
  *
  * All PEs participate; there is no initiator/target split. After the timed
  * loop each PE contributes its rate and latency to a global sum-reduce.
@@ -260,10 +260,8 @@ void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
     double *lat = shmem_malloc(sizeof(double));
     double *sum_lat = shmem_malloc(sizeof(double));
     int *dest_count = shmem_calloc(v.npes, sizeof(int));
-    int *sum_dest_count = shmem_calloc(v.npes, sizeof(int));
 
-    if (!rate || !sum_rate || !lat || !sum_lat || !sum_dest_count ||
-        !dest_count) {
+    if (!rate || !sum_rate || !lat || !sum_lat || !dest_count) {
         fprintf(stderr, "shmem_malloc failed for reduce buffers (pe: %d)\n",
                 v.me);
         shmem_global_exit(EXIT_FAILURE);
@@ -279,17 +277,25 @@ void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
         long old_value = 0;
 
         begin = TIME();
-        for (i = 0; i < iterations; i++) {
+        for (i = 0; i < iterations * send_count; i++) {
             int dest_pe = (random_dest) ? (int)(rand() % v.npes) : v.nxtpe;
-            if (call_amo) {
+            int local_count = dest_count[dest_pe] % send_count;
+            long *src_bucket = &src[dest_pe * send_count];
+
+            if(local_count < send_count) {
+              src_bucket[local_count] = v.me; // pack src to send
+              local_count++;
+            }
+
+            if(local_count == send_count) { // bucket is full
+              if (call_amo) {
                 old_value =
-                    shmem_atomic_fetch_add(&(buffer[dest_pe]), value, dest_pe);
-                size_t put_slot = old_value % DST_SLOTS;
-                shmem_long_put(&dst[put_slot * send_count], src, send_count,
-                               dest_pe);
-            } else {
-                size_t put_slot = dest_count[dest_pe] % DST_SLOTS;
-                shmem_long_put(&dst[put_slot * send_count], src, send_count, dest_pe);
+                  shmem_atomic_fetch_add(&(buffer[dest_pe]), value, dest_pe);
+              } else {
+                old_value =  dest_count[dest_pe] ;
+              }
+              size_t  put_slot = old_value % DST_SLOTS;
+              shmem_long_put(&dst[put_slot * send_count], src_bucket, send_count, dest_pe);
             }
             dest_count[dest_pe]++;
         }
@@ -303,11 +309,7 @@ void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
     shmem_double_sum_reduce(SHMEM_TEAM_WORLD, sum_lat, lat, 1);
     print_operation_rate(v.me, send_bytes, *sum_rate / 1e6, *sum_lat / v.npes);
 
-    //shmem_int_sum_reduce(SHMEM_TEAM_WORLD, sum_dest_count, dest_count, v.npes);
-    //print_statistics(v.me, sum_dest_count, v.npes);
-
     shmem_free(dest_count);
-    shmem_free(sum_dest_count);
     shmem_free(rate);
     shmem_free(sum_rate);
     shmem_free(lat);
@@ -329,7 +331,7 @@ void benchmark(struct pe_vars v, union data_types *msg_buffer, int call_amo,
 
     long max_slots = DST_SLOTS;
 
-    long *src = (long *)shmem_malloc(max_bytes);
+    long *src = (long *)shmem_malloc(max_bytes * v.npes);
     long *dst = (long *)shmem_calloc(max_slots * (max_bytes / sizeof(long)), sizeof(long));
     long *buffer = (long *)shmem_calloc(v.npes, sizeof(long));
 
@@ -338,7 +340,7 @@ void benchmark(struct pe_vars v, union data_types *msg_buffer, int call_amo,
         shmem_global_exit(EXIT_FAILURE);
     }
 
-    memset(src, 0, max_bytes);
+    memset(src, 0, max_bytes * v.npes);
 
     /* warmup */
     for (unsigned long i = 0; i < OSHM_LOOP_ATOMIC; i++)
