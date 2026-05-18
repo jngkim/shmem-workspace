@@ -3,8 +3,8 @@
  * cust_nail_random — put + optional AMO benchmark with configurable destination
  *
  * Each PE performs a timed loop of OSHM_LOOP_ATOMIC iterations. In each
- * iteration the destination PE is either the fixed ring neighbor (random_dest=0)
- * or chosen uniformly at random across all PEs (random_dest=1).
+ * iteration the destination PE is either the fixed ring neighbor
+ * (random_dest=0) or chosen uniformly at random across all PEs (random_dest=1).
  *
  * When call_amo=1, each iteration issues a fetching atomic add (fetch-add) to
  * a per-destination counter on the remote PE before the put. The value returned
@@ -248,7 +248,7 @@ void print_statistics(int me, int *dest_count, int npes)
 
 void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
                     int random_dest, size_t send_bytes, long *src, long *dst,
-                    long *buffer)
+                    long *buffer, int print_stats)
 {
     double begin, end;
     int i;
@@ -289,7 +289,8 @@ void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
                                dest_pe);
             } else {
                 size_t put_slot = dest_count[dest_pe] % DST_SLOTS;
-                shmem_long_put(&dst[put_slot * send_count], src, send_count, dest_pe);
+                shmem_long_put(&dst[put_slot * send_count], src, send_count,
+                               dest_pe);
             }
             dest_count[dest_pe]++;
         }
@@ -301,10 +302,12 @@ void benchmark_nail(struct pe_vars v, unsigned long iterations, int call_amo,
 
     shmem_double_sum_reduce(SHMEM_TEAM_WORLD, sum_rate, rate, 1);
     shmem_double_sum_reduce(SHMEM_TEAM_WORLD, sum_lat, lat, 1);
-    print_operation_rate(v.me, send_bytes, *sum_rate / 1e6, *sum_lat / v.npes);
+    if (print_stats)
+        print_operation_rate(v.me, send_bytes, *sum_rate / 1e6,
+                             *sum_lat / v.npes);
 
-    //shmem_int_sum_reduce(SHMEM_TEAM_WORLD, sum_dest_count, dest_count, v.npes);
-    //print_statistics(v.me, sum_dest_count, v.npes);
+    // shmem_int_sum_reduce(SHMEM_TEAM_WORLD, sum_dest_count, dest_count,
+    // v.npes); print_statistics(v.me, sum_dest_count, v.npes);
 
     shmem_free(dest_count);
     shmem_free(sum_dest_count);
@@ -329,27 +332,26 @@ void benchmark(struct pe_vars v, union data_types *msg_buffer, int call_amo,
 
     long max_slots = DST_SLOTS;
 
-    long *src = (long *)shmem_malloc(max_bytes);
-    long *dst = (long *)shmem_calloc(max_slots * (max_bytes / sizeof(long)), sizeof(long));
-    long *buffer = (long *)shmem_calloc(v.npes, sizeof(long));
+    long *src = (long *)shmem_malloc(max_bytes * v.npes);
+    long *dst = (long *)shmem_malloc(max_slots * max_bytes);
+    long *buffer = (long *)shmem_malloc(v.npes * sizeof(long));
 
     if (!src || !dst || !buffer) {
         fprintf(stderr, "allocation failed (pe: %d)\n", v.me);
         shmem_global_exit(EXIT_FAILURE);
     }
 
-    memset(src, 0, max_bytes);
-
-    /* warmup */
-    for (unsigned long i = 0; i < OSHM_LOOP_ATOMIC; i++)
-        shmem_putmem(&msg_buffer[i].int_type, &msg_buffer[i].int_type,
-                     sizeof(int), v.nxtpe);
+    // warmup
+    memset(dst, 0, max_slots * max_bytes);
+    memset(buffer, 0, v.npes * sizeof(long));
+    benchmark_nail(v, OSHM_LOOP_ATOMIC, call_amo, random_dest, max_bytes, src,
+                   dst, buffer, 0);
 
     for (size_t bytes = min_bytes; bytes < max_bytes; bytes *= 2) {
         memset(buffer, 0, v.npes * sizeof(long));
         memset((void *)dst, 0, max_slots * bytes);
         benchmark_nail(v, OSHM_LOOP_ATOMIC, call_amo, random_dest, bytes, src,
-                       dst, buffer);
+                       dst, buffer, 1);
         if (bytes > SIZE_MAX / 2)
             break;
     }
@@ -358,7 +360,7 @@ void benchmark(struct pe_vars v, union data_types *msg_buffer, int call_amo,
     memset(buffer, 0, v.npes * sizeof(long));
     memset((void *)dst, 0, max_slots * max_bytes);
     benchmark_nail(v, OSHM_LOOP_ATOMIC, call_amo, random_dest, max_bytes, src,
-                   dst, buffer);
+                   dst, buffer, 1);
 
     shmem_free(src);
     shmem_free(dst);
@@ -386,14 +388,19 @@ int main(int argc, char *argv[])
     msg_buffer = allocate_memory(v.me, use_heap);
     memset(msg_buffer, 0, sizeof(union data_types[OSHM_LOOP_ATOMIC]));
 
-    long raw_random_dest = (argc >= 2 + arg_off) ?
-                           parse_long(v.me, argv[1 + arg_off], "random_dest") : 0;
+    long raw_random_dest =
+        (argc >= 2 + arg_off) ?
+            parse_long(v.me, argv[1 + arg_off], "random_dest") :
+            0;
     long raw_amo = (argc >= 3 + arg_off) ?
-                           parse_long(v.me, argv[2 + arg_off], "call_amo") : 0;
+                       parse_long(v.me, argv[2 + arg_off], "call_amo") :
+                       0;
     long raw_min = (argc >= 4 + arg_off) ?
-                           parse_long(v.me, argv[3 + arg_off], "min_bytes") : DEFAULT_MIN_BYTES;
+                       parse_long(v.me, argv[3 + arg_off], "min_bytes") :
+                       DEFAULT_MIN_BYTES;
     long raw_max = (argc >= 5 + arg_off) ?
-                           parse_long(v.me, argv[4 + arg_off], "max_bytes") : raw_min;
+                       parse_long(v.me, argv[4 + arg_off], "max_bytes") :
+                       raw_min;
 
     if (raw_min <= 0 || raw_min % 8 != 0) {
         if (v.me == 0)
