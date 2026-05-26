@@ -6,10 +6,10 @@
 #          Can be used standalone or with pbs_node_scaling.sh for scaling studies.
 #
 # Usage (standalone):
-#   qsub -N nail -l nodes=2 -l filesystems=home pbs_contention.sh
+#   qsub -N nail -l nodes=2 -l filesystems=home nail_contention.sh
 #
 # Usage (with scaling framework):
-#   export SCRIPT_TO_RUN="${HOME}/shmem-workspace/pbs_contention.sh"
+#   export SCRIPT_TO_RUN="${HOME}/shmem-workspace/nail_contention.sh"
 #   qsub -N scaling_study -l nodes=2 -l filesystems=home pbs_node_scaling.sh
 #
 # Environment variables:
@@ -158,7 +158,7 @@ declare -Ax APP_BIN
 APP_BIN["random"]=cust_nail_random
 APP_BIN["bucket"]=cust_nail_random_bucket
 
-declare -ax SOS_LIBS=(sos sos-xpmem)
+declare -ax SOS_LIBS=(sos)
 out_dir_top=$out_dir
 
 # Application-specific runs

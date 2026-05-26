@@ -19,7 +19,7 @@
 #   NO_CHAIN             Set to 1 to suppress automatic job chaining
 #
 # Example (in a PBS script or manually):
-#   export SCRIPT_TO_RUN="${HOME}/shmem-workspace/pbs_contention.sh"
+#   export SCRIPT_TO_RUN="${HOME}/shmem-workspace/nail_contention.sh"
 #   export NODE_COUNTS="2 4 8"
 #   qsub -N my_study -l nodes=2 -l filesystems=home pbs_node_scaling.sh
 #
@@ -72,7 +72,7 @@ fi
 # ── Validate inputs ──────────────────────────────────────────────────────────
 if [[ -z "${SCRIPT_TO_RUN}" ]]; then
     echo "ERROR: SCRIPT_TO_RUN not set. Set it before invoking this script."
-    echo "Example: export SCRIPT_TO_RUN=\${HOME}/shmem-workspace/pbs_contention.sh"
+    echo "Example: export SCRIPT_TO_RUN=\${HOME}/shmem-workspace/nail_contention.sh"
     exit 1
 fi
 
@@ -161,7 +161,9 @@ if [[ ${CURRENT_IDX} -ge 0 && ${NEXT_IDX} -lt ${#NODE_COUNTS[@]} ]]; then
     if [[ -n "${PBS_NODEFILE}" ]]; then
         # PBS submission
         qsub -N "${JOB_NAME}" \
+             -A Intel-Punchlist \
              -l "nodes=${NEXT_NODES}" \
+             -l walltime=00:30:00 \
              -l filesystems=home \
              -v "PREV_JOBID=${JOBID},PREV_JOB_NAME=${JOB_NAME},SCRIPT_TO_RUN=${SCRIPT_TO_RUN},NODE_COUNTS=${NODE_COUNTS_STR},NO_CHAIN=${NO_CHAIN}" \
              "${SCRIPT_PATH}"
@@ -178,6 +180,7 @@ elif [[ ${CURRENT_IDX} -ge 0 ]]; then
     
     if [[ -n "${PBS_NODEFILE}" ]]; then
         qsub -N "${JOB_NAME}_cleanup" \
+             -A Intel-Punchlist \
              -l nodes=1 \
              -l walltime=00:05:00 \
              -l filesystems=home \
