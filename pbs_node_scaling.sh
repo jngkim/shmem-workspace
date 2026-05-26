@@ -166,7 +166,7 @@ if [[ ${CURRENT_IDX} -ge 0 && ${NEXT_IDX} -lt ${#NODE_COUNTS[@]} ]]; then
              -l walltime=00:30:00 \
              -l filesystems=home \
              -v "PREV_JOBID=${JOBID},PREV_JOB_NAME=${JOB_NAME},SCRIPT_TO_RUN=${SCRIPT_TO_RUN},NODE_COUNTS=${NODE_COUNTS_STR},NO_CHAIN=${NO_CHAIN}" \
-             "${SCRIPT_PATH}"
+             "$0"
     elif [[ -n "${SLURM_NODELIST}" ]]; then
         # SLURM submission
         sbatch --nodes="${NEXT_NODES}" \
