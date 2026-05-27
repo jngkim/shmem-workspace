@@ -55,15 +55,18 @@ if [[ "${CLEANUP_ONLY}" == "1" ]]; then
         exit 1
     fi
     source "${HOME}/shmem-workspace/config.sh"
-    
+
     prev_out_dir="${HOME}/shmem-workspace/results/${CLUSTER}/${PREV_JOB_NAME}.${PREV_JOBID}"
     mkdir -p "${prev_out_dir}"
-    
+
+    echo "DEBUG: Cleanup looking for files: ${PBS_O_WORKDIR}/${PREV_JOB_NAME}.{o,e}${PREV_JOBID}"
     for ext in o e; do
         f="${PBS_O_WORKDIR}/${PREV_JOB_NAME}.${ext}${PREV_JOBID}"
         if [[ -f "${f}" ]]; then
             mv "${f}" "${prev_out_dir}/" && \
                 echo "INFO: Moved ${PREV_JOB_NAME}.${ext}${PREV_JOBID} -> ${prev_out_dir}/"
+        else
+            echo "DEBUG: Cleanup file not found: ${f}"
         fi
     done
     exit 0
@@ -110,23 +113,29 @@ WORLD_SIZE=$(( nnodes * LOCAL_WORLD_SIZE ))
 echo "WORLD_SIZE=${WORLD_SIZE} LOCAL_WORLD_SIZE=${LOCAL_WORLD_SIZE}"
 
 # ── Move previous job's PBS output (if applicable) ────────────────────────────
+echo "DEBUG: PREV_JOBID='${PREV_JOBID:-}' PREV_JOB_NAME='${PREV_JOB_NAME:-}'"
 if [[ -n "${PREV_JOBID:-}" ]]; then
     if [[ ! -f "${HOME}/shmem-workspace/config.sh" ]]; then
         echo "ERROR: Cannot source config.sh; expected at ${HOME}/shmem-workspace/config.sh"
         exit 1
     fi
     source "${HOME}/shmem-workspace/config.sh"
-    
+
     prev_out_dir="${HOME}/shmem-workspace/results/${CLUSTER}/${PREV_JOB_NAME}.${PREV_JOBID}"
     mkdir -p "${prev_out_dir}"
-    
+    echo "DEBUG: Looking for files: ${WORKDIR}/${PREV_JOB_NAME}.{o,e}${PREV_JOBID}"
+
     for ext in o e; do
         f="${WORKDIR}/${PREV_JOB_NAME}.${ext}${PREV_JOBID}"
         if [[ -f "${f}" ]]; then
             mv "${f}" "${prev_out_dir}/" && \
                 echo "INFO: Moved ${PREV_JOB_NAME}.${ext}${PREV_JOBID} -> ${prev_out_dir}/"
+        else
+            echo "DEBUG: File not found: ${f}"
         fi
     done
+else
+    echo "DEBUG: No PREV_JOBID set, skipping file movement"
 fi
 
 # ── Run the user-specified benchmark script ──────────────────────────────────
@@ -157,16 +166,19 @@ NEXT_IDX=$(( CURRENT_IDX + 1 ))
 if [[ ${CURRENT_IDX} -ge 0 && ${NEXT_IDX} -lt ${#NODE_COUNTS[@]} ]]; then
     NEXT_NODES=${NODE_COUNTS[$NEXT_IDX]}
     echo "INFO: Scaling sweep: ${nnodes} -> ${NEXT_NODES} nodes. Submitting next job."
-    
+
+    # Get the script's directory to ensure consistent PBS_O_WORKDIR across chained jobs
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
     if [[ -n "${PBS_NODEFILE}" ]]; then
-        # PBS submission
-        qsub -N "${JOB_NAME}" \
+        # PBS submission - cd to script directory so PBS_O_WORKDIR is consistent
+        (cd "${SCRIPT_DIR}" && qsub -N "${JOB_NAME}" \
              -A Intel-Punchlist \
              -l "nodes=${NEXT_NODES}" \
              -l walltime=00:30:00 \
              -l filesystems=home \
              -v "PREV_JOBID=${JOBID},PREV_JOB_NAME=${JOB_NAME},SCRIPT_TO_RUN=${SCRIPT_TO_RUN},NODE_COUNTS=${NODE_COUNTS_STR},NO_CHAIN=${NO_CHAIN}" \
-             "$0"
+             "$0")
     elif [[ -n "${SLURM_NODELIST}" ]]; then
         # SLURM submission
         sbatch --nodes="${NEXT_NODES}" \
@@ -177,15 +189,19 @@ if [[ ${CURRENT_IDX} -ge 0 && ${NEXT_IDX} -lt ${#NODE_COUNTS[@]} ]]; then
 elif [[ ${CURRENT_IDX} -ge 0 ]]; then
     # Last node count in sweep — submit a 1-node cleanup job to organize output files
     echo "INFO: Scaling sweep complete at ${nnodes} nodes. Submitting cleanup job."
-    
+
+    # Get the script's directory to ensure consistent PBS_O_WORKDIR across chained jobs
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
     if [[ -n "${PBS_NODEFILE}" ]]; then
-        qsub -N "${JOB_NAME}_cleanup" \
+        # PBS submission - cd to script directory so PBS_O_WORKDIR is consistent
+        (cd "${SCRIPT_DIR}" && qsub -N "${JOB_NAME}_cleanup" \
              -A Intel-Punchlist \
              -l nodes=1 \
              -l walltime=00:05:00 \
              -l filesystems=home \
              -v "PREV_JOBID=${JOBID},PREV_JOB_NAME=${JOB_NAME},CLEANUP_ONLY=1" \
-             "$0"
+             "$0")
     elif [[ -n "${SLURM_NODELIST}" ]]; then
         sbatch --nodes=1 \
                --job-name="${JOB_NAME}_cleanup" \
