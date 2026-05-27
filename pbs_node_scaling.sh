@@ -27,7 +27,8 @@
 #   1. Source config and detect the current node count
 #   2. Run SCRIPT_TO_RUN with the allocated nodes
 #   3. Automatically submit the next job in the node count sequence
-#   4. After the last job, submit a cleanup job to organize PBS output
+#   4. Move the previous job's PBS output files to results/${CLUSTER}/${JOBNAME}.${JOBID}/
+#   5. After the last job, files remain in workspace (run cleanup_pbs_files.sh to move them)
 #
 ################################################################################
 
@@ -47,30 +48,6 @@ for item in ${NODE_COUNTS_STR//,/ }; do
     NODE_COUNTS+=($item)
 done
 
-# ── Cleanup-only mode ────────────────────────────────────────────────────────
-# Submitted automatically after the last benchmark run to move PBS output files
-if [[ "${CLEANUP_ONLY}" == "1" ]]; then
-    if [[ ! -f "${HOME}/shmem-workspace/config.sh" ]]; then
-        echo "ERROR: Cannot source config.sh; expected at ${HOME}/shmem-workspace/config.sh"
-        exit 1
-    fi
-    source "${HOME}/shmem-workspace/config.sh"
-
-    prev_out_dir="${HOME}/shmem-workspace/results/${CLUSTER}/${PREV_JOB_NAME}.${PREV_JOBID}"
-    mkdir -p "${prev_out_dir}"
-
-    echo "DEBUG: Cleanup looking for files: ${PBS_O_WORKDIR}/${PREV_JOB_NAME}.{o,e}${PREV_JOBID}"
-    for ext in o e; do
-        f="${PBS_O_WORKDIR}/${PREV_JOB_NAME}.${ext}${PREV_JOBID}"
-        if [[ -f "${f}" ]]; then
-            mv "${f}" "${prev_out_dir}/" && \
-                echo "INFO: Moved ${PREV_JOB_NAME}.${ext}${PREV_JOBID} -> ${prev_out_dir}/"
-        else
-            echo "DEBUG: Cleanup file not found: ${f}"
-        fi
-    done
-    exit 0
-fi
 
 # ── Validate inputs ──────────────────────────────────────────────────────────
 if [[ -z "${SCRIPT_TO_RUN}" ]]; then
@@ -187,28 +164,10 @@ if [[ ${CURRENT_IDX} -ge 0 && ${NEXT_IDX} -lt ${#NODE_COUNTS[@]} ]]; then
                "$0"
     fi
 elif [[ ${CURRENT_IDX} -ge 0 ]]; then
-    # Last node count in sweep — submit a 1-node cleanup job to organize output files
-    echo "INFO: Scaling sweep complete at ${nnodes} nodes. Submitting cleanup job."
-
-    # Get the script's directory to ensure consistent PBS_O_WORKDIR across chained jobs
-    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-    if [[ -n "${PBS_NODEFILE}" ]]; then
-        # PBS submission - cd to script directory so PBS_O_WORKDIR is consistent
-        (cd "${SCRIPT_DIR}" && qsub -N "${JOB_NAME}_cleanup" \
-             -A Intel-Punchlist \
-             -l nodes=1 \
-             -l walltime=00:05:00 \
-             -l filesystems=home \
-             -v "PREV_JOBID=${JOBID},PREV_JOB_NAME=${JOB_NAME},CLEANUP_ONLY=1" \
-             "$0")
-    elif [[ -n "${SLURM_NODELIST}" ]]; then
-        sbatch --nodes=1 \
-               --job-name="${JOB_NAME}_cleanup" \
-               --time=5 \
-               --export="PREV_JOBID=${JOBID},PREV_JOB_NAME=${JOB_NAME},CLEANUP_ONLY=1" \
-               "$0"
-    fi
+    # Last node count in sweep — no more jobs to submit
+    echo "INFO: Scaling sweep complete at ${nnodes} nodes."
+    echo "INFO: Output files for this final job will remain in ${WORKDIR}/"
+    echo "INFO: Run cleanup_pbs_files.sh manually to move them if needed."
 else
     echo "WARN: nnodes=${nnodes} not in NODE_COUNTS=(${NODE_COUNTS[*]}); no chain submitted."
 fi
