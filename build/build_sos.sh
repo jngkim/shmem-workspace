@@ -11,6 +11,11 @@ SOS_INSTALL=${SOS_INSTALL:-${BASE}/install/sos}
 OFI_BUILD=${OFI_BUILD:-${BASE}/ofi}
 OFI_INSTALL=${OFI_INSTALL:-${BASE}/install/ofi}
 
+SOS_COMPILERS="CXX=mpicxx CC=mpicc"
+SOS_PMI_FLAG="--enable-pmi-mpi"
+#SOS_COMPILERS="CXX=icpx CC=icx"
+#SOS_PMI_FLAG="--enable-pmi-simple"
+
 extra_options=${1:-""}
 
 build_ofi() {
@@ -31,57 +36,35 @@ build_ofi() {
     make install
 }
 
-if [[ "${PLATFORM}" != *"mac"* ]]; then
-    SOS_COMPILERS="CXX=mpicxx CC=mpicc"
-    SOS_PMI_FLAG="--enable-pmi-mpi"
-    SOS_XPMEM_FLAG=""
-    if [[ "${OFI_INSTALL}" == *"cray"* ]]; then
-        # On Cray/CXI systems, XPMEM and CXI can conflict for intra-node transfers 
-        # — SOS uses XPMEM for shared-memory transport between ranks on the same
-        # node, but when combined with CXI's memory registration model it can
-        # deadlock during shmem_init or collectives.
-        # with CXI's memory registration model it can deadlock during shmem_init or collectives.
-        if [[ "${CLUSTER}" == *"borealis"* ]]; then
-            SOS_XPMEM_FLAG="--with-xpmem=/usr/lib"
-        fi
-        SOS_OFI_MR="--enable-ofi-mr=basic --enable-mr-endpoint --enable-ofi-manual-progress"
-    else
-        # 2026-04-06 on anbmg and florence
-        # add --with-cma to improve on-node perf
-        # drop --disable-bounce-buffers
-        SOS_OFI_MR="--with-cma --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling"
-    fi
-
-    SOS_HMEM_FLAG="--enable-ofi-hmem"
-
-    if [[ "${CLUSTER}" == *"anbmg"* ]]; then
-        SOS_HMEM_FLAG=""
-    fi
-
-    if [[ "$(PLATFORM)" == *"linux"* ]]; then
-        SOS_HMEM_FLAG=""
-        SOS_OFI_MR="--enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling"
-    fi
-else
-    # On macOS, use homebrew g++-15
-    extra_options="--enable-dlopen --disable-cxx" 
-    SOS_COMPILERS="CXX=/opt/homebrew/bin/g++-15 CC=/opt/homebrew/bin/gcc-15"
-    SOS_PMI_FLAG="--enable-pmi-simple"
-    SOS_OFI_MR="--enable-ofi-mr=basic --with-hwloc=/opt/homebrew"
-fi
-
-build_sos_ofi() {
-
-    if [ ! -f ${SRC_ROOT}/SOS/configure ]; then
-        cd ${SRC_ROOT}/SOS && ./autogen.sh
-    fi
-
+# configure options used for 1.5 release
+# https://github.com/oneapi-src/ishmem/issues/15
+# export FI_CXI_OPTIMIZED_MRS=0
+build_sos1.5_cxi() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
 
-    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} \
-      --with-ofi=${OFI_INSTALL} ${SOS_XPMEM_FLAG} ${SOS_PMI_FLAG} \
+    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
       --disable-fortran --disable-libtool-wrapper ${extra_options} \
+      --enable-ofi-mr=basic --disable-ofi-inject --enable-ofi-hmem \
+      --disable-bounce-buffers --enable-ofi-manual-progress --enable-mr-endpoint \
+      --disable-nonfetch-amo --enable-manual-progress \
+      ${SOS_PMI_FLAG} ${SOS_COMPILERS}
+
+    make -j
+    make install
+
+    head config.log > ${SOS_INSTALL}/config.log
+}
+
+
+build_sos1.6_cxi() {
+    mkdir -p ${SOS_BUILD}
+    cd ${SOS_BUILD}
+
+    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+      --disable-fortran --disable-libtool-wrapper ${extra_options} \
+      --enable-ofi-mr=basic --enable-mr-endpoint --enable-ofi-manual-progress \
+      --enable-ofi-hmem \
       ${SOS_OFI_MR} ${SOS_HMEM_FLAG} ${SOS_COMPILERS}
 
     make -j
@@ -90,40 +73,44 @@ build_sos_ofi() {
     head config.log > ${SOS_INSTALL}/config.log
 }
 
+build_sos1.6_ib() {
+    mkdir -p ${SOS_BUILD}
+    cd ${SOS_BUILD}
+
+    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+      --disable-fortran --disable-libtool-wrapper ${extra_options} \
+      --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling \
+      --with-cma --enable-ofi-hmem \
+      ${SOS_PMI_FLAG} ${SOS_COMPILERS}
+
+    make -j
+    make install
+
+    head config.log > ${SOS_INSTALL}/config.log
+}
+
+build_sos1.6_mac() {
+    mkdir -p ${SOS_BUILD}
+    cd ${SOS_BUILD}
+
+    SOS_COMPILERS="CXX=/opt/homebrew/bin/g++-15 CC=/opt/homebrew/bin/gcc-15"
+    SOS_PMI_FLAG="--enable-pmi-simple"
+    extra_options="--enable-dlopen --disable-cxx" 
+
+    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+      --disable-fortran --disable-libtool-wrapper ${extra_options} \
+      --enable-ofi-mr=basic --with-hwloc=/opt/homebrew \
+      ${SOS_PMI_FLAG} ${SOS_COMPILERS}
+}
+
 if [[ "${SKIP_OFI_BUILD:-0}" != "1" ]] && [ ! -d ${OFI_INSTALL} ]; then
     build_ofi
 fi
 
-build_sos_ofi
-
-cat <<EOF > ${BASE}/setup_ofi.sh
-#!/bin/bash
-export OFI_INSTALL=${OFI_INSTALL}
-
-if [[ ":\$LD_LIBRARY_PATH:" != *":\${OFI_INSTALL}/lib:"* ]]; then
-    export LD_LIBRARY_PATH=\${OFI_INSTALL}/lib:\$LD_LIBRARY_PATH
-    export FI_PROVIDER_PATH=\${OFI_INSTALL}/lib/libfabric:\$FI_PROVIDER_PATH
-    export PATH=\${OFI_INSTALL}/bin:\$PATH
-fi
-EOF
-chmod +x ${BASE}/setup_ofi.sh
-echo "Setup script created: ${BASE}/setup_ofi.sh"
-
-cat <<EOF > ${BASE}/setup_sos.sh
-#!/bin/bash
-# This script sets up the environment variables for SOS and OFI installations.
-export SOS_INSTALL=${SOS_INSTALL}
-export OFI_INSTALL=${OFI_INSTALL}
-
-if [[ ":\$LD_LIBRARY_PATH:" != *":\${OFI_INSTALL}/lib:"* ]]; then
-    export LD_LIBRARY_PATH=\${OFI_INSTALL}/lib:\$LD_LIBRARY_PATH
-    export PATH=\${OFI_INSTALL}/bin:\$PATH
+if [ ! -f ${SRC_ROOT}/SOS/configure ]; then
+  cd ${SRC_ROOT}/SOS && ./autogen.sh
 fi
 
-if [[ ":\$LD_LIBRARY_PATH:" != *":\${SOS_INSTALL}/lib:"* ]]; then
-    export LD_LIBRARY_PATH=\${SOS_INSTALL}/lib:\$LD_LIBRARY_PATH
-    export PATH=\${SOS_INSTALL}/bin:\$PATH
-fi
-EOF
-chmod +x ${BASE}/setup_sos.sh
-echo "Setup script created: ${BASE}/setup_sos.sh"
+#build_sos_ofi
+build_sos1.5_cxi
+
