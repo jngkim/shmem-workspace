@@ -39,15 +39,18 @@ build_ofi() {
 # configure options used for 1.5 release
 # https://github.com/oneapi-src/ishmem/issues/15
 # export FI_CXI_OPTIMIZED_MRS=0
+# Removed 2026-05-29
+#      --disable-bounce-buffers
+#      --disable-nonfetch-amo
 build_sos1.5_cxi() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
 
     ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
       --disable-fortran --disable-libtool-wrapper ${extra_options} \
-      --enable-ofi-mr=basic --disable-ofi-inject --enable-ofi-hmem \
-      --disable-bounce-buffers --enable-ofi-manual-progress --enable-mr-endpoint \
-      --disable-nonfetch-amo --enable-manual-progress \
+      --enable-ofi-mr=basic --enable-mr-endpoint --enable-ofi-hmem \
+      --enable-manual-progress --enable-ofi-manual-progress \
+      --disable-ofi-inject \
       ${SOS_PMI_FLAG} ${SOS_COMPILERS}
 
     make -j
