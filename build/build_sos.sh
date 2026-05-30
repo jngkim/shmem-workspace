@@ -92,6 +92,20 @@ build_sos1.6_ib() {
     head config.log > ${SOS_INSTALL}/config.log
 }
 
+build_sos1.6_linux() {
+    mkdir -p ${SOS_BUILD}
+    cd ${SOS_BUILD}
+
+    SOS_COMPILERS="CXX=mpicxx CC=mpicc"
+    SOS_PMI_FLAG="--enable-pmi-mpi"
+
+    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+      --disable-fortran --disable-libtool-wrapper ${extra_options} \
+      --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling \
+      --enable-ofi=hmem \
+      ${SOS_PMI_FLAG} ${SOS_COMPILERS}
+}
+
 build_sos1.6_mac() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
@@ -116,4 +130,5 @@ fi
 
 #build_sos_ofi
 build_sos1.5_cxi
+#build_sos1.6_linux
 
