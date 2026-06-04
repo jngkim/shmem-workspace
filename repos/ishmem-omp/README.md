@@ -1,32 +1,57 @@
-# Intel SHMEM CMake Example
+# ISHMEM OMP/SYCL Examples
 
-This repository contains a minimal CMake project that builds a SYCL-based Intel SHMEM example.
+This repository contains a small CMake project with two Intel SHMEM examples:
 
-## Files
+- `test_sycl`: SYCL-based data initialization and host-side ISHMEM calls
+- `test_omp`: OpenMP target offload initialization and host-side ISHMEM calls
 
-- `CMakeLists.txt`: Project configuration using `find_package(ISHMEM CONFIG REQUIRED)`.
-- `test_sycl.cpp`: Example program using Intel SHMEM host APIs.
+Both examples:
+
+- initialize/finalize ISHMEM
+- query PE rank/count
+- allocate symmetric memory
+- run collective and point-to-point operations
+- print per-PE validation output
+
+## Repository layout
+
+- `CMakeLists.txt`: Build configuration and options
+- `test_sycl.cpp`: SYCL + ISHMEM example
+- `test_omp.cpp`: OpenMP offload + ISHMEM example
 
 ## Prerequisites
 
-- Intel oneAPI compiler toolchain (`icx`, `icpx`)
-- Intel SHMEM installation with CMake package config (`ISHMEMConfig.cmake`)
 - CMake 3.20+
+- Intel oneAPI C/C++ toolchain (`icx`, `icpx`)
+- Intel SHMEM installation with `ISHMEMConfig.cmake`
+- Runtime launcher/environment for your SHMEM stack
+
+Optional when enabling OpenSHMEM backend mode:
+
+- `pkg-config`
+- Sandia OpenSHMEM package discoverable as `sandia-openshmem`
 
 ## Configure
 
-Use Intel compilers and pass your Intel SHMEM install prefix as `ISHMEM_DIR`:
+Use Intel compilers and point CMake to your ISHMEM install.
 
 ```bash
-CC=icx CXX=icpx cmake -S . -B build -DISHMEM_DIR=/nfs/site/home/jeongnim/shmem-workspace/build/latest/ishmem-bb/_install
+CC=icx CXX=icpx cmake -S . -B build \
+  -DISHMEM_DIR=/path/to/ishmem/install
 ```
 
-Notes:
+`ISHMEM_DIR` may be either:
 
-- This project always uses `find_package(ISHMEM CONFIG REQUIRED)`.
-- `ISHMEM_DIR` can be either:
-  - the install prefix, or
-  - the config directory containing `ISHMEMConfig.cmake`
+- an install prefix containing `lib/cmake/ishmem/ISHMEMConfig.cmake`, or
+- the config directory itself (`.../lib/cmake/ishmem`)
+
+Enable OpenSHMEM runtime support (optional):
+
+```bash
+CC=icx CXX=icpx cmake -S . -B build \
+  -DISHMEM_DIR=/path/to/ishmem/install \
+  -DENABLE_OPENSHMEM=ON
+```
 
 ## Build
 
@@ -34,17 +59,42 @@ Notes:
 cmake --build build -j
 ```
 
-## Reuse the ISHMEM interface target
+Expected binaries:
 
-The project defines an interface library target named `ishmem`.
+- `build/test_sycl`
+- `build/test_omp`
 
-To add another executable and reuse the same host-side ISHMEM link setup:
+## Run
+
+Run with your SHMEM launcher (for example `oshrun`) and a selected PE count:
+
+```bash
+oshrun -n 2 ./build/test_sycl
+oshrun -n 2 ./build/test_omp
+```
+
+If your environment requires oneAPI setup first, source it before configure/build/run:
+
+```bash
+source /opt/intel/oneapi/setvars.sh
+```
+
+## CMake target reuse
+
+The project defines an interface target `ishmem` that links host-side ISHMEM usage requirements.
+
+To reuse in new executables:
 
 ```cmake
 add_executable(my_app my_app.cpp)
 target_link_libraries(my_app PRIVATE ishmem)
 ```
 
-## Current link behavior
+## Troubleshooting
 
-- The `ishmem` interface target is configured to link host-side Intel SHMEM targets/libraries only.
+- `Could not find ISHMEMConfig.cmake`:
+  Verify `ISHMEM_DIR` points to either install prefix or `lib/cmake/ishmem`.
+- `pkg-config could not find sandia-openshmem`:
+  Install/configure Sandia OpenSHMEM or disable `ENABLE_OPENSHMEM`.
+- Link/runtime backend mismatch:
+  Reconfigure from a clean build directory after changing runtime/backend options.
