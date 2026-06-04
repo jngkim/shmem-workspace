@@ -18,3 +18,8 @@ add_executable(test_sycl test_sycl.cpp)
 target_compile_options(test_sycl PRIVATE -fsycl)
 target_link_options(test_sycl PRIVATE -fsycl)
 target_link_libraries(test_sycl PRIVATE ishmem)
+
+add_executable(test_omp test_omp.cpp)
+target_compile_options(test_omp PRIVATE -fiopenmp -fopenmp-targets=spir64)
+target_link_options(test_omp PRIVATE -fiopenmp -fopenmp-targets=spir64)
+target_link_libraries(test_omp PRIVATE ishmem)
