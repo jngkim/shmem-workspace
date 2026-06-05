@@ -37,7 +37,7 @@ endfunction()
 
 function(add_omp_app target_name)
   add_executable(${target_name} ${ARGN})
-  target_compile_options(${target_name} PRIVATE -fiopenmp -fopenmp-targets=spir64 -fsycl)
+  target_compile_options(${target_name} PRIVATE -fiopenmp -fopenmp-targets=spir64)
   target_link_options(${target_name} PRIVATE -fiopenmp -fopenmp-targets=spir64)
   target_link_libraries(${target_name} PRIVATE ishmem)
   if(TARGET sos)

@@ -9,7 +9,6 @@
 #include <vector>
 #include <sycl/sycl.hpp>
 #include <ishmem.h>
-#include <ishmemx.h>
 
 int main(int argc, char **argv)
 {
