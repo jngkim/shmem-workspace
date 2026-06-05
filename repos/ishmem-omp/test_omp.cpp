@@ -4,11 +4,10 @@
 
 /* Example demonstrating Intel SHMEM with OpenMP offload */
 
-#include <iostream>
-#include <cstring>
-#include <vector>
 #include <omp.h>
 #include <ishmem.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv)
 {
@@ -23,18 +22,18 @@ int main(int argc, char **argv)
     int target_pe = (my_pe + 1) % n_pes;
     int source_pe = (my_pe - 1 + n_pes) % n_pes;
     int nelems = 4;
-    std::cout << "\n======================================" << std::endl;
-    std::cout << "PE " << my_pe << " / " << n_pes << std::endl;
-    std::cout << "======================================" << std::endl;
+    printf("\n======================================\n");
+    printf("PE %d / %d\n", my_pe, n_pes);
+    printf("======================================\n");
 
-    std::cout << "  ✓ ISHMEM initialized successfully" << std::endl;
-    std::cout << "  ✓ Query operations successful" << std::endl;
+    printf("  ✓ ISHMEM initialized successfully\n");
+    printf("  ✓ Query operations successful\n");
 
     {
         int *data = (int *)ishmem_malloc(n_pes * nelems * sizeof(int));
-        if (data == nullptr)
+        if (data == NULL)
         {
-            std::cout << "  ✗ Memory allocation failed" << std::endl;
+            printf("  ✗ Memory allocation failed\n");
             errors++;
         }
         else
@@ -45,7 +44,7 @@ int main(int argc, char **argv)
             {
                 data[i] = my_pe;
             }
-            std::cout << "  ✓ Allocated and initialized " << n_pes * nelems << " integers" << std::endl;
+            printf("  ✓ Allocated and initialized %d integers\n", n_pes * nelems);
         }
 
         int *remote_data = (int *)ishmem_calloc(n_pes * nelems, sizeof(int));
@@ -53,23 +52,24 @@ int main(int argc, char **argv)
         ishmem_sum_reduce(remote_data, data, n_pes * nelems);
 
         ishmem_barrier_all();
-        std::cout << "  ✓ Barrier completed" << std::endl;
+        printf("  ✓ Barrier completed\n");
 
         ishmem_put(&remote_data[my_pe * nelems], &data[my_pe * nelems], nelems, target_pe);
         ishmem_barrier_all();
 
-        std::vector<int> check_buf(n_pes * nelems);
-        omp_target_memcpy(check_buf.data(), remote_data, n_pes * nelems * sizeof(int), 0, 0,
+        int *check_buf = (int *)malloc(n_pes * nelems * sizeof(int));
+        omp_target_memcpy(check_buf, remote_data, n_pes * nelems * sizeof(int), 0, 0,
                           omp_get_initial_device(), omp_get_default_device());
 
-        std::cout << "  PE " << my_pe << " received data: [";
+        printf("  PE %d received data: [", my_pe);
         for (int i = 0; i < n_pes * nelems; i++)
         {
-            std::cout << check_buf[i];
+            printf("%d", check_buf[i]);
             if (i < n_pes * nelems - 1)
-                std::cout << ", ";
+                printf(", ");
         }
-        std::cout << "]" << std::endl;
+        printf("]\n");
+        free(check_buf);
 
         ishmem_free(remote_data);
         ishmem_free(data);
@@ -78,17 +78,16 @@ int main(int argc, char **argv)
     ishmem_barrier_all();
 
     /* Final summary */
-    std::cout << "\n======================================" << std::endl;
+    printf("\n======================================\n");
     if (errors == 0)
     {
-        std::cout << "PE " << my_pe << " - ALL TESTS PASSED ✓" << std::endl;
+        printf("PE %d - ALL TESTS PASSED ✓\n", my_pe);
     }
     else
     {
-        std::cout << "PE " << my_pe << " - FAILED with " << errors << " error(s)" << std::endl;
+        printf("PE %d - FAILED with %d error(s)\n", my_pe, errors);
     }
-    std::cout << "======================================\n"
-              << std::endl;
+    printf("======================================\n\n");
 
     /* Finalize */
     ishmem_finalize();
