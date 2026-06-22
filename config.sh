@@ -59,6 +59,7 @@ export ZE_ENABLE_PCI_ID_DEVICE_MAPPING=1
 export EnableImplicitScaling=0
 export NEOReadDebugKeys=1
 export ISHMEM_RUNTIME=MPI
+unset  ISHMEM_ROOT
 
 #export SHMEM_SYMMETRIC_SIZE=3G
 
@@ -66,7 +67,7 @@ export ISHMEM_RUNTIME=MPI
 case "${PLATFORM}" in
   cray)
     # Cray CXI — Aurora and Borealis
-    export OFI_INSTALL="${OFI_INSTALL:-/opt/cray/libfabric/1.22.0}"
+    export OFI_INSTALL="${OFI_INSTALL:-/opt/cray/libfabric/2.3.1}"
     export PALS_PMI=pmix
     #export FI_PROVIDER=cxi
     #export FI_CXI_OPTIMIZED_MRS=0

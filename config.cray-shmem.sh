@@ -1,18 +1,18 @@
 #!/bin/bash
 # Load modules to use Cray SHMEM
 
-ml load cray-pe/25.03
-ml load cray-dsmml/0.3.1
+ml load cray-pe/25.09
+ml load cray-dsmml
 ml use -a /opt/cray/pe/lmod/modulefiles
-ml load net/ofi/1.0/cray-openshmemx/11.7.4
+ml load net/ofi/1.0/cray-openshmemx/11.8.0
 
-export SMA_ROOT=/opt/cray/pe/sma/11.7.4/ofi/sma
+export SMA_ROOT=/opt/cray/pe/sma/11.8.0/ofi/sma
 export DSMML_ROOT=/opt/cray/pe/dsmml/0.3.1/dsmml
-export PMI_ROOT=/opt/cray/pe/pmi/6.1.15
+export PMI_ROOT=/opt/cray/pe/pmi/6.1.16
 export LD_LIBRARY_PATH=${SMA_ROOT}/lib64:${PMI_ROOT}/lib:${DSMML_ROOT}/lib:$LD_LIBRARY_PATH
 export LIBRARY_PATH=${SMA_ROOT}/lib64:${PMI_ROOT}/lib:${DSMML_ROOT}/lib:$LIBRARY_PATH
 
-export SHMEM_USE_DSMML_SSHEAP=0
+#export SHMEM_USE_DSMML_SSHEAP=0
 export PALS_PMI=pmi
 
 # Force to use only one NIC per socket
