@@ -62,9 +62,8 @@ set(OSU_OPENSHMEM_BENCHMARKS
     osu_oshm_put_nb_bw
     osu_oshm_get_overlap
     osu_oshm_atomics2
-    cust_nail_clone
-    cust_nail_random
-    cust_nail_random_bucket
+    fadd_put_single
+    fadd_put_bucket
 )
 
 foreach(benchmark ${OSU_OPENSHMEM_BENCHMARKS})
