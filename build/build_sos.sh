@@ -6,6 +6,7 @@
 export BASE=${BASE:-${HOME}/shmem-workspace/build/latest}
 
 SRC_ROOT=${SRC_ROOT:-${HOME}/shmem-workspace/repos}
+SOS_SRC=${SOS_SRC-${SRC_ROOT}/sos}
 SOS_BUILD=${SOS_BUILD:-${BASE}/sos}
 SOS_INSTALL=${SOS_INSTALL:-${BASE}/install/sos}
 OFI_BUILD=${OFI_BUILD:-${BASE}/ofi}
@@ -46,7 +47,7 @@ build_sos1.5_cxi() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
 
-    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+    ${SOS_SRC}/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
       --disable-fortran --disable-libtool-wrapper ${extra_options} \
       --enable-ofi-mr=basic --enable-mr-endpoint --enable-ofi-hmem \
       --enable-manual-progress --enable-ofi-manual-progress \
@@ -64,11 +65,11 @@ build_sos1.6_cxi() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
 
-    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+    ${SOS_SRC}/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
       --disable-fortran --disable-libtool-wrapper ${extra_options} \
       --enable-ofi-mr=basic --enable-mr-endpoint --enable-ofi-manual-progress \
       --enable-ofi-hmem \
-      ${SOS_OFI_MR} ${SOS_HMEM_FLAG} ${SOS_COMPILERS}
+      ${SOS_PMI_FLAG} ${SOS_COMPILERS}
 
     make -j
     make install
@@ -80,7 +81,7 @@ build_sos1.6_ib() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
 
-    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+    ${SOS_SRC}/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
       --disable-fortran --disable-libtool-wrapper ${extra_options} \
       --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling \
       --with-cma --enable-ofi-hmem \
@@ -99,7 +100,7 @@ build_sos1.6_linux() {
     SOS_COMPILERS="CXX=mpicxx CC=mpicc"
     SOS_PMI_FLAG="--enable-pmi-mpi"
 
-    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+    ${SOS_SRC}/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
       --disable-fortran --disable-libtool-wrapper ${extra_options} \
       --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling \
       --enable-ofi=hmem \
@@ -114,7 +115,7 @@ build_sos1.6_mac() {
     SOS_PMI_FLAG="--enable-pmi-simple"
     extra_options="--enable-dlopen --disable-cxx" 
 
-    ${SRC_ROOT}/SOS/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+    ${SOS_SRC}/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
       --disable-fortran --disable-libtool-wrapper ${extra_options} \
       --enable-ofi-mr=basic --with-hwloc=/opt/homebrew \
       ${SOS_PMI_FLAG} ${SOS_COMPILERS}
@@ -129,6 +130,6 @@ if [ ! -f ${SRC_ROOT}/SOS/configure ]; then
 fi
 
 #build_sos_ofi
-build_sos1.5_cxi
+build_sos1.6_cxi
 #build_sos1.6_linux
 
