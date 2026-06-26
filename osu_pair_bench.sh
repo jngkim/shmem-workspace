@@ -24,7 +24,7 @@ if [[ "${DEBUG_AFFINITY}" == "1" ]]; then
   export I_MPI_DEBUG=5
   timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_C} ${mpi_put} 2>&1 | tee -a ${out_dir}/mpi.core.debug.dat
   timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_S} ${mpi_put} 2>&1 | tee -a ${out_dir}/mpi.socket.debug.dat
-  timeout 10 mpirun -np 2 -ppn 1 ${MPI_BIND2_N} ${mpi_put} 2>&1 | tee -a ${out_dir}/mpi.node.debug.dat
+  timeout 10 mpirun -np 2 -ppn 1 ${NO_VNI} ${MPI_BIND2_N} ${mpi_put} 2>&1 | tee -a ${out_dir}/mpi.node.debug.dat
   unset I_MPI_DEBUG
   #check_bad_termination
 fi
@@ -34,13 +34,13 @@ do
  mpi_exe=${OSU_BUILD}/mpi/one-sided/osu_${m}_latency
  for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_C} ${mpi_exe} >> ${out_dir}/mpi.${m}.core.dat   ; sleep 2 ; done
  for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_S} ${mpi_exe} >> ${out_dir}/mpi.${m}.socket.dat ; sleep 2 ; done
- for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 1 ${MPI_BIND2_N} ${mpi_exe} >> ${out_dir}/mpi.${m}.node.dat   ; sleep 2 ; done
+ for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 1 ${NO_VNI} ${MPI_BIND2_N} ${mpi_exe} >> ${out_dir}/mpi.${m}.node.dat   ; sleep 2 ; done
 done
 
 mpi_exe=${OSU_BUILD}/mpi/collective/blocking/osu_barrier
 for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_C} ${mpi_exe} >> ${out_dir}/mpi.barrier.core.dat   ; sleep 2 ; done
 for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 2 ${MPI_BIND2_S} ${mpi_exe} >> ${out_dir}/mpi.barrier.socket.dat ; sleep 2 ; done
-for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 1 ${MPI_BIND2_N} ${mpi_exe} >> ${out_dir}/mpi.barrier.node.dat   ; sleep 2 ; done
+for a in $(seq 1 ${NREPS_MPI}); do timeout 10 mpirun -np 2 -ppn 1 ${NO_VNI} ${MPI_BIND2_N} ${mpi_exe} >> ${out_dir}/mpi.barrier.node.dat   ; sleep 2 ; done
 
 #if [[ "${PLATFORM}" == "ib" ]]; then
 # export FI_PROVIDER=verbs
@@ -56,7 +56,7 @@ if [[ "${DEBUG_AFFINITY}" == "1" ]]; then
     export CVARS="-genv LD_LIBRARY_PATH=$BASE/install/$X/lib:$LD_LIBRARY_PATH"
     timeout 60 mpirun ${CVARS} -np 2 -ppn 2 ${BIND2_C} ${shm_put} heap 2>&1 | tee -a ${out_dir}/$X.core.debug.dat
     timeout 60 mpirun ${CVARS} -np 2 -ppn 2 ${BIND2_S} ${shm_put} heap 2>&1 | tee -a ${out_dir}/$X.socket.debug.dat
-    timeout 60 mpirun ${CVARS} -np 2 -ppn 1 ${BIND2_N} ${shm_put} heap 2>&1 | tee -a ${out_dir}/$X.node.debug.dat
+    timeout 60 mpirun ${CVARS} -np 2 -ppn 1 ${NO_VNI} ${BIND2_N} ${shm_put} heap 2>&1 | tee -a ${out_dir}/$X.node.debug.dat
     #check_bad_termination
   done
   unset SHMEM_DEBUG
@@ -68,7 +68,7 @@ for X in "${SOS_LIST[@]}"; do
     shm_exe=${OSU_BUILD}/openshmem/osu_oshm_${m}
     for a in $(seq 1 ${NREPS_SHM}); do timeout 60 mpirun ${CVARS} -np 2 -ppn 2 ${BIND2_C} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.core.dat ; sleep 2 ; done
     for a in $(seq 1 ${NREPS_SHM}); do timeout 60 mpirun ${CVARS} -np 2 -ppn 2 ${BIND2_S} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.socket.dat ; sleep 2 ; done
-    for a in $(seq 1 ${NREPS_SHM}); do timeout 60 mpirun ${CVARS} -np 2 -ppn 1 ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.node.dat ; sleep 2 ; done
+    for a in $(seq 1 ${NREPS_SHM}); do timeout 60 mpirun ${CVARS} -np 2 -ppn 1 ${NO_VNI} ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/$X.${m}.node.dat ; sleep 2 ; done
   done
 done
 
@@ -82,6 +82,6 @@ if [[ "${HAVE_SHMEMX}" -eq 1 ]]; then
     echo "mpirun -np 2 -ppn 2 ${BIND2_S} osu_oshm_${m} heap "
     for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 2 ${BIND2_S} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.socket.dat ; sleep 2 ; done
     echo "mpirun -np 2 -ppn 1 ${BIND2_N} osu_oshm_${m} heap "
-    for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 1 ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.node.dat ; sleep 2 ; done
+    for a in $(seq 1 ${NREPS_SHM}); do timeout 30 mpirun -np 2 -ppn 1 ${NO_VNI} ${BIND2_N} ${shm_exe} heap | tee -a ${out_dir}/shmemx.${m}.node.dat ; sleep 2 ; done
   done
 fi
