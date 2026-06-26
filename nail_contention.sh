@@ -153,12 +153,12 @@ run_shmemx_benchmarks() {
 
 # ── Main execution ───────────────────────────────────────────────────────────
 
-declare -ax APP_LIST=(random bucket)
+declare -ax APP_LIST=(single bucket)
 declare -Ax APP_BIN
-APP_BIN["random"]=cust_nail_random
-APP_BIN["bucket"]=cust_nail_random_bucket
+APP_BIN["single"]=fadd_put_single
+APP_BIN["bucket"]=fadd_put_bucket
 
-declare -ax SOS_LIBS=(sos)
+declare -ax SOS_LIBS=(sos sos-xpmem sos-opt)
 out_dir_top=$out_dir
 
 # Application-specific runs
