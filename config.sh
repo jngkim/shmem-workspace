@@ -69,6 +69,7 @@ case "${PLATFORM}" in
     # Cray CXI — Aurora and Borealis
     export OFI_INSTALL="${OFI_INSTALL:-/opt/cray/libfabric/2.3.1}"
     export PALS_PMI=pmix
+    unset FI_LOG_LEVEL
     #export FI_PROVIDER=cxi
     #export FI_CXI_OPTIMIZED_MRS=0
     #export FI_CXI_DEFAULT_CQ_SIZE=131072
