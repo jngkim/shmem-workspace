@@ -744,10 +744,11 @@ void benchmark(struct pe_vars v, union data_types *msg_buffer)
      * Performance with atomics
      */
     benchmark_fadd(v, msg_buffer, OSHM_LOOP_ATOMIC);
-    benchmark_finc(v, msg_buffer, OSHM_LOOP_ATOMIC);
-    benchmark_add(v, msg_buffer, OSHM_LOOP_ATOMIC);
-    benchmark_inc(v, msg_buffer, OSHM_LOOP_ATOMIC);
+    //benchmark_finc(v, msg_buffer, OSHM_LOOP_ATOMIC);
+    //benchmark_add(v, msg_buffer, OSHM_LOOP_ATOMIC);
+    //benchmark_inc(v, msg_buffer, OSHM_LOOP_ATOMIC);
     benchmark_cswap(v, msg_buffer, OSHM_LOOP_ATOMIC);
+#if 0
     benchmark_swap(v, msg_buffer, OSHM_LOOP_ATOMIC);
     benchmark_set(v, msg_buffer, OSHM_LOOP_ATOMIC);
     benchmark_fetch(v, msg_buffer, OSHM_LOOP_ATOMIC);
@@ -760,6 +761,7 @@ void benchmark(struct pe_vars v, union data_types *msg_buffer)
     benchmark_swap_longlong(v, msg_buffer, OSHM_LOOP_ATOMIC);
     benchmark_set_longlong(v, msg_buffer, OSHM_LOOP_ATOMIC);
     benchmark_fetch_longlong(v, msg_buffer, OSHM_LOOP_ATOMIC);
+#endif
 }
 
 int main(int argc, char *argv[])

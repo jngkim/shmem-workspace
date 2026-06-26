@@ -1,51 +1,4 @@
 #define BENCHMARK "Nail Random: OpenSHMEM Fetching Atomic + Dependent Put Test"
-/*
- * cust_nail_random_bucket — bucketed put + optional AMO benchmark
- *
- * The src buffer is divided into npes buckets of send_count = send_bytes /
- * sizeof(long) longs each. The bucket for destination dest_pe is at
- * src[dest_pe * send_count]. The main loop runs OSHM_LOOP_ATOMIC * send_count
- * iterations, packing one element per step into the appropriate src_bucket.
- * When a bucket fills (every send_count steps to the same destination PE), a
- * put is issued.
- *
- * When call_amo=1, a fetching atomic add to a per-destination counter on the
- * remote PE precedes each put. The value returned by the AMO (old_value)
- * selects the remote slot (old_value % DST_SLOTS), creating a true
- * read-after-write (RAW) dependency that serializes the put on the AMO result.
- *
- * When call_amo=0 (baseline), a local counter selects the remote slot,
- * measuring raw bucketed put throughput without AMO overhead.
- *
- * All PEs participate; there is no initiator/target split. After the timed
- * loop each PE contributes its rate and latency to a global sum-reduce.
- * Reported throughput is the aggregate across all PEs; reported latency is the
- * per-PE average.
- *
- * Usage:
- *   cust_nail_random <heap|global> [random_dest] [call_amo]
- *                                  [min_bytes] [max_bytes]
- *
- *   random_dest  0|1. When 1, each put targets a PE chosen uniformly at
- *                random. When 0, the fixed ring neighbor is used. Default: 0.
- *
- *   call_amo     0|1. When 1, a fetching atomic add precedes every put,
- *                creating an AMO->put RAW dependency. Default: 0.
- *
- *   min_bytes    Minimum put size in bytes. Must be a positive multiple of 8.
- *                Default: 8.
- *
- *   max_bytes    Maximum put size in bytes. Must be a positive multiple of 8.
- *                The benchmark sweeps sizes doubling from min_bytes up to
- *                max_bytes. Defaults to min_bytes (single size) when omitted.
- *
- * Examples:
- *   cust_nail_random heap              -- 8-byte puts, ring neighbor, no AMO
- *   cust_nail_random heap 1 0          -- random dest, no AMO
- *   cust_nail_random heap 1 1          -- random dest with AMO dependency
- *   cust_nail_random heap 0 0 8 4096   -- size sweep 8..4096, ring, no AMO
- *   cust_nail_random heap 1 1 64 64    -- single 64-byte size, random + AMO
- */
 
 #include <shmem.h>
 #include <stdio.h>
@@ -143,7 +96,7 @@ static void print_usage(int myid)
 {
     if (myid == 0) {
         if (MEMORY_SELECTION) {
-            fprintf(stderr, "Usage: cust_nail_random <heap|global> [call_amo] "
+            fprintf(stderr, "Usage: fadd_put_bucket <heap|global> [call_amo] "
                             "[random_dest] [min_bytes] [max_bytes]\n");
             fprintf(stderr, "  call_amo    0|1, enable fetching AMO before put "
                             "(default 0)\n");
@@ -157,7 +110,7 @@ static void print_usage(int myid)
                     "  max_bytes   maximum put size, multiple of 8 "
                     "(default: same as min_bytes); sweep doubles min to max\n");
         } else {
-            fprintf(stderr, "Usage: cust_nail_random [call_amo] "
+            fprintf(stderr, "Usage: fadd_put_bucket [call_amo] "
                             "[random_dest] [min_bytes] [max_bytes]\n");
         }
     }
@@ -229,7 +182,7 @@ void print_operation_rate(int myid, size_t bytes, double rate, double lat)
 {
     if (myid == 0) {
         fprintf(stdout, "%-*zu%*s%*.*f%*.*f\n", 20, bytes, FIELD_WIDTH,
-                "benchmark_nail", FIELD_WIDTH, FLOAT_PRECISION, rate,
+                "fadd_put_bucket", FIELD_WIDTH, FLOAT_PRECISION, rate,
                 FIELD_WIDTH, FLOAT_PRECISION, lat);
         fflush(stdout);
     }
