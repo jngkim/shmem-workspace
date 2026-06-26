@@ -70,7 +70,7 @@ run_sos_benchmarks() {
 # ── Main execution ───────────────────────────────────────────────────────────
 
 app_tag=bucket
-app_bin=cust_nail_random_bucket
+app_bin=fadd_put_bucket
 
 declare -ax SOS_LIBS=(sos)
 out_dir_top=$out_dir
