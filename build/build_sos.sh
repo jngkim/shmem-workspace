@@ -6,7 +6,7 @@
 export BASE=${BASE:-${HOME}/shmem-workspace/build/latest}
 
 SRC_ROOT=${SRC_ROOT:-${HOME}/shmem-workspace/repos}
-SOS_SRC=${SOS_SRC-${SRC_ROOT}/sos}
+SOS_SRC=${SOS_SRC-${SRC_ROOT}/SOS}
 SOS_BUILD=${SOS_BUILD:-${BASE}/sos}
 SOS_INSTALL=${SOS_INSTALL:-${BASE}/install/sos}
 OFI_BUILD=${OFI_BUILD:-${BASE}/ofi}
@@ -112,7 +112,7 @@ if [ ! -f ${SRC_ROOT}/SOS/configure ]; then
 fi
 
 if [[ "${PLATFORM}" == "cray" ]]; then
-  build_sos1.5_cxi
+  build_sos1.6_cxi
 else
   build_sos_ofi
   build_sos_linux
