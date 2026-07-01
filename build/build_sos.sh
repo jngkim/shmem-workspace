@@ -27,11 +27,7 @@ build_ofi() {
     mkdir -p ${OFI_BUILD}
     cd ${OFI_BUILD}
     ${OFI_SRC}/configure --prefix=${OFI_INSTALL} \
-      --disable-rxd \
-      --disable-rxm \
-      --disable-udp \
-      --disable-usnic \
-      --disable-psm
+    --with-dlopen=no --disable-psm2 CC=icx CXX=icpx
 
     make -j
     make install
@@ -77,14 +73,14 @@ build_sos1.6_cxi() {
     head config.log > ${SOS_INSTALL}/config.log
 }
 
-build_sos1.6_ib() {
+build_sos_linux() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
 
     ${SOS_SRC}/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
       --disable-fortran --disable-libtool-wrapper ${extra_options} \
       --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling \
-      --with-cma --enable-ofi-hmem \
+      --enable-ofi-hmem \
       ${SOS_PMI_FLAG} ${SOS_COMPILERS}
 
     make -j
@@ -93,21 +89,7 @@ build_sos1.6_ib() {
     head config.log > ${SOS_INSTALL}/config.log
 }
 
-build_sos1.6_linux() {
-    mkdir -p ${SOS_BUILD}
-    cd ${SOS_BUILD}
-
-    SOS_COMPILERS="CXX=mpicxx CC=mpicc"
-    SOS_PMI_FLAG="--enable-pmi-mpi"
-
-    ${SOS_SRC}/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
-      --disable-fortran --disable-libtool-wrapper ${extra_options} \
-      --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling \
-      --enable-ofi=hmem \
-      ${SOS_PMI_FLAG} ${SOS_COMPILERS}
-}
-
-build_sos1.6_mac() {
+build_sos_mac() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
 
@@ -129,7 +111,9 @@ if [ ! -f ${SRC_ROOT}/SOS/configure ]; then
   cd ${SRC_ROOT}/SOS && ./autogen.sh
 fi
 
-#build_sos_ofi
-build_sos1.6_cxi
-#build_sos1.6_linux
-
+if [[ "${PLATFORM}" == "cray" ]]; then
+  build_sos1.5_cxi
+else
+  build_sos_ofi
+  build_sos_linux
+fi
