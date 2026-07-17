@@ -89,6 +89,37 @@ build_sos_linux() {
     head config.log > ${SOS_INSTALL}/config.log
 }
 
+# Single-node, no-NIC build (e.g. GPU cloud VM with no InfiniBand).
+# With --enable-ofi-hmem the only providers advertising FI_HMEM are the
+# single-node ones (shm/sm2). Three extra flags are required vs build_sos_linux:
+#   --enable-ofi-manual-progress: shm/sm2 only support FI_PROGRESS_MANUAL;
+#     without it SOS requests FI_PROGRESS_AUTO and fi_getinfo returns -61.
+#     (defines ENABLE_FI_MANUAL_PROGRESS -> provider progress mode only)
+#   --enable-manual-progress: makes shmem_transport_probe() actually drive the
+#     target CQ while spin-waiting. shm executes atomics/RMA on the target, so
+#     without this the barrier deadlocks (completions never arrive). NOTE this
+#     is a DIFFERENT flag from --enable-ofi-manual-progress (defines
+#     ENABLE_MANUAL_PROGRESS); both are needed together, as in the cxi recipe.
+#   --disable-ofi-inject: shm advertises inject_size=0, so requiring inject
+#     support in the fi_getinfo hints rejects the only HMEM-capable provider.
+# Run with SHMEM_OFI_PROVIDER=shm.
+build_sos_shm() {
+    mkdir -p ${SOS_BUILD}
+    cd ${SOS_BUILD}
+
+    ${SOS_SRC}/configure --prefix=${SOS_INSTALL} --with-ofi=${OFI_INSTALL} \
+      --disable-fortran --disable-libtool-wrapper ${extra_options} \
+      --enable-ofi-mr=basic --enable-mr-endpoint --enable-hard-polling \
+      --enable-manual-progress --enable-ofi-manual-progress --disable-ofi-inject \
+      --enable-ofi-hmem \
+      ${SOS_PMI_FLAG} ${SOS_COMPILERS}
+
+    make -j
+    make install
+
+    head config.log > ${SOS_INSTALL}/config.log
+}
+
 build_sos_mac() {
     mkdir -p ${SOS_BUILD}
     cd ${SOS_BUILD}
@@ -111,9 +142,10 @@ if [ ! -f ${SRC_ROOT}/SOS/configure ]; then
   cd ${SRC_ROOT}/SOS && ./autogen.sh
 fi
 
-if [[ "${PLATFORM}" == "cray" ]]; then
+if [[ "${SOS_BUILD_SHM:-0}" == "1" ]]; then
+  build_sos_shm
+elif [[ "${PLATFORM}" == "cray" ]]; then
   build_sos1.6_cxi
 else
-  build_sos_ofi
   build_sos_linux
 fi

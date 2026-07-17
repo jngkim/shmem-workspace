@@ -20,6 +20,7 @@ if [[ -z "${CLUSTER:-}" ]]; then
         *florence*) CLUSTER=florence ;;
         *compute*)  CLUSTER=florence ;;  # Florence compute-node hostnames
         *anbmg*)    CLUSTER=anbmg    ;;
+        *ortce*)    CLUSTER=ortce    ;;
         *)          CLUSTER=unknown  ;;
     esac
 fi
@@ -27,6 +28,10 @@ export CLUSTER
 
 HAVE_SHMEMX=0  # default; set to 1 for platforms with shmemx support
 # ─── Platform derived from cluster ────────────────────────────────────────────
+# Override: export PLATFORM=<name> before sourcing to skip derivation. Use
+# PLATFORM=shm for a single-node, no-NIC box (uses the OFI shm provider), e.g.
+# a GPU cloud VM with no InfiniBand.
+if [[ -z "${PLATFORM:-}" ]]; then
 case "${CLUSTER}" in
   aurora|sunspot)
     PLATFORM=cray
@@ -48,6 +53,7 @@ case "${CLUSTER}" in
       fi
     ;;
 esac
+fi
 export PLATFORM
 export HAVE_SHMEMX
 
@@ -59,7 +65,10 @@ export ZE_ENABLE_PCI_ID_DEVICE_MAPPING=1
 export EnableImplicitScaling=0
 export NEOReadDebugKeys=1
 export ISHMEM_RUNTIME=MPI
-unset  ISHMEM_ROOT
+export I_MPI_OFFLOAD=1
+export I_MPI_OFFLOAD_RDMA=1
+export I_MPI_CXX=icpx
+export I_MPI_CC=icx
 
 #export SHMEM_SYMMETRIC_SIZE=3G
 
@@ -82,10 +91,6 @@ case "${PLATFORM}" in
   ib)
     # InfiniBand / verbs — Florence
     export USE_I_MPI=1
-    export I_MPI_OFFLOAD=1
-    export I_MPI_OFFLOAD_RDMA=1
-    export I_MPI_CXX=icpx
-    export I_MPI_CC=icx
 
     export SHMEM_CMA_PUT_MAX=524288
     export UCX_WARN_UNUSED_ENV_VARS=n
@@ -94,18 +99,23 @@ case "${PLATFORM}" in
     #export FI_PROVIDER=verbs
     #export MLX5_SCATTER_TO_CQE=0
     #export FI_VERBS_IFACE="ib0"
-
-    # Arc B-Series GPU workarounds (Borealis; harmless on Aurora)
-    _out=$(ONEAPI_DEVICE_SELECTOR=level_zero:* sycl-ls 2>/dev/null)
-    if echo "${_out}" | grep -qP "Intel.*Arc.*B[0-9]+ Graphics"; then
-      export RenderCompressedBuffersEnabled=0
-      export ISHMEM_ENABLE_DEVICE_ATOMICS=0
-      export UseKmdMigration=1
-      echo "INFO: Arc B-Series GPU detected — applied GPU workarounds"
-    fi
- 
+    ;;
+  linux|mac)
+    export SHMEM_OFI_PROVIDER=shm
+    # Generic host build (no special fabric). Nothing platform-specific to set.
+    :
     ;;
   *)
-    echo "WARNING: Unknown platform — no platform-specific env vars applied"
+    echo "WARNING: Unknown platform '${PLATFORM}' — no platform-specific env vars applied"
     ;;
 esac
+
+ # Arc B-Series GPU workarounds (Borealis; harmless on Aurora)
+_out=$(ONEAPI_DEVICE_SELECTOR=level_zero:* sycl-ls 2>/dev/null)
+if echo "${_out}" | grep -qP "Intel.*Arc.*B[0-9]+ Graphics"; then
+  export RenderCompressedBuffersEnabled=0
+  export ISHMEM_ENABLE_DEVICE_ATOMICS=0
+  export UseKmdMigration=1
+  echo "INFO: Arc B-Series GPU detected — applied GPU workarounds"
+fi
+unset _out
