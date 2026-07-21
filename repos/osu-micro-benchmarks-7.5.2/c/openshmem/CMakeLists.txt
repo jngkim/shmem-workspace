@@ -34,11 +34,17 @@ if(ENABLE_OPENSHMEM)
 endif()
 
 if(ENABLE_CRAYSHMEMX)
+
   pkg_check_modules(DSMML REQUIRED IMPORTED_TARGET dsmml)
   pkg_check_modules(SMA REQUIRED IMPORTED_TARGET sma)
   target_include_directories(sos INTERFACE ${SMA_INCLUDE_DIRS})
   target_link_libraries(sos INTERFACE ${SMA_LDFLAGS} ${SMA_LIBRARIES} ${DSMML_LDFLAGS} ${DSMML_LIBRARIES})
   target_link_libraries(osu_openshmem_util PUBLIC sos)
+
+  find_library(M_LIBRARY m)
+  if(M_LIBRARY)
+    target_link_libraries(osu_openshmem_util PUBLIC ${M_LIBRARY})
+  endif()
 endif()
 
 set(OSU_OPENSHMEM_BENCHMARKS
