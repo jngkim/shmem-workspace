@@ -67,13 +67,7 @@ SOS_COMPILERS=${SOS_COMPILERS:-"CXX=mpicxx CC=mpicc"}
 OFI_COMPILERS=${OFI_COMPILERS:-"CXX=icpx CC=icx"}
 
 # Only the providers that can serve a single node; override to change the set.
-OFI_PROVIDER_FLAGS=${OFI_PROVIDER_FLAGS:-"--enable-shm --enable-sm2 --enable-tcp
-                                          --disable-verbs --disable-psm2
-                                          --disable-psm3 --disable-opx
-                                          --disable-efa --disable-usnic
-                                          --disable-ucx --disable-lnx
-                                          --disable-udp --disable-rxd
-                                          --disable-rxm --disable-sockets"}
+OFI_PROVIDER_FLAGS=${OFI_PROVIDER_FLAGS:-"--disable-psm2 "}
 
 # CPU only: no accelerator backends and no HMEM plumbing at all.
 OFI_HMEM_FLAGS=${OFI_HMEM_FLAGS:-"--without-ze --without-cuda --without-rocr
@@ -206,7 +200,6 @@ build_ofi() {
     # than in the GPU build, where dlopening Level Zero breaks FI_HMEM_ZE.
     ${OFI_SRC}/configure \
         --prefix=${OFI_INSTALL} \
-        --with-dlopen=no \
         ${OFI_PROVIDER_FLAGS} \
         ${OFI_HMEM_FLAGS} \
         ${OFI_COMPILERS}

@@ -24,7 +24,7 @@
 #
 set -u
 
-WS=/mnt/data0/nfs/pdx/home/jeongnim/shmem-workspace
+WS=${HOME}/shmem-workspace
 BUILD=${BUILD:-${WS}/build/sos}
 NPROCS=${NPROCS:-2}
 TIMEOUT=${TIMEOUT:-120}
