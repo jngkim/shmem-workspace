@@ -16,6 +16,13 @@ add_library(osu_mpi_util OBJECT
 target_include_directories(osu_mpi_util PUBLIC ${UTIL_DIR})
 target_link_libraries(osu_mpi_util PUBLIC MPI::MPI_C)
 
+# osu_util.c uses pow() from <math.h>.  On older glibc/gcc the math library is
+# not folded into libc, so link libm explicitly (propagated to consumers).
+find_library(M_LIBRARY m)
+if(M_LIBRARY)
+  target_link_libraries(osu_mpi_util PUBLIC ${M_LIBRARY})
+endif()
+
 # Helper macro to build a benchmark executable (available to all subdirectories)
 macro(add_mpi_benchmark name src_dir)
     add_executable(${name} ${src_dir}/${name}.c)
