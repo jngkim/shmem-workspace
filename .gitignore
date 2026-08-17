@@ -1,0 +1,15 @@
+.*.sw*
+tags
+install/
+
+# In build/, track only the build scripts.
+build/*
+!build/*.sh
+
+# Ignore everything under repos/ except the repos actually tracked by git.
+repos/*
+!repos/ishmem-omp/
+!repos/osu-micro-benchmarks-7.5.2/
+
+# ...but still ignore build output inside those.
+repos/*/build/
