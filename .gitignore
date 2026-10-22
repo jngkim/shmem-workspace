@@ -1,5 +1,6 @@
 .*.sw*
-.claude
+# Track project Claude skills; keep per-user local settings out.
+.claude/settings.local.json
 tags
 install/
 
