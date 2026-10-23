@@ -2,7 +2,8 @@
 # Configure and build Intel SHMEM (unit/perf tests + examples) against Intel MPI.
 # Usage: build.sh [extra cmake -D args...]
 # Env: ISHMEM_SRC, ISHMEM_BUILD, ISHMEM_INSTALL, ISHMEM_AOT_DEVICE_TYPES, JOBS,
-#      BUILD_UNIT_TESTS (default OFF for faster builds; ON for ctest unit tests)
+#      AGAMA_SETUP (see env.sh),
+#      BUILD_UNIT_TESTS (default ON; OFF skips the unit tests for a faster build)
 set -eo pipefail
 
 WORKSPACE_ROOT=${WORKSPACE_ROOT:-"$HOME/shmem-workspace"}
@@ -11,7 +12,7 @@ ISHMEM_BUILD=${ISHMEM_BUILD:-"$WORKSPACE_ROOT/build/ishmem"}
 ISHMEM_INSTALL=${ISHMEM_INSTALL:-"$WORKSPACE_ROOT/install/ishmem"}
 ISHMEM_AOT_DEVICE_TYPES=${ISHMEM_AOT_DEVICE_TYPES:-"xe-hpc,xe2"}
 JOBS=${JOBS:-$(nproc)}
-BUILD_UNIT_TESTS=${BUILD_UNIT_TESTS:-OFF}
+BUILD_UNIT_TESTS=${BUILD_UNIT_TESTS:-ON}
 
 if [[ ! -f "$ISHMEM_SRC/CMakeLists.txt" ]]; then
     echo "ERROR: ishmem source not found at $ISHMEM_SRC" >&2
@@ -19,9 +20,7 @@ if [[ ! -f "$ISHMEM_SRC/CMakeLists.txt" ]]; then
     exit 1
 fi
 
-if ! command -v icpx >/dev/null || [[ -z ${I_MPI_ROOT:-} ]]; then
-    source /opt/intel/oneapi/setvars.sh >/dev/null
-fi
+source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
 
 mkdir -p "$ISHMEM_BUILD"
 cmake -S "$ISHMEM_SRC" -B "$ISHMEM_BUILD" \
@@ -37,6 +36,7 @@ cmake -S "$ISHMEM_SRC" -B "$ISHMEM_BUILD" \
     -DBUILD_EXAMPLES=ON \
     -DCTEST_LAUNCHER=mpi \
     -DENABLE_OPENSHMEM=OFF \
+    -DENABLE_IBGDA=OFF \
     -DISHMEM_AOT_DEVICE_TYPES="$ISHMEM_AOT_DEVICE_TYPES" \
     "$@" 2>&1 | tee "$ISHMEM_BUILD/configure.log"
 cmake --build "$ISHMEM_BUILD" -j "$JOBS" 2>&1 | tee "$ISHMEM_BUILD/build.log"
