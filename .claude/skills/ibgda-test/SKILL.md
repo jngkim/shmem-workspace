@@ -14,7 +14,7 @@ Paths (defaults, overridable via env):
 | Install | `~/shmem-workspace/install/ishmem` |
 
 Other builds also live under `~/shmem-workspace/build/<name>` and `~/shmem-workspace/install/<name>`;
-for a variant build set `ISHMEM_BUILD`/`ISHMEM_INSTALL` to a new `<name>` rather than reusing `ishmem`.
+for a variant build set `I_SHMEM_BUILD`/`I_SHMEM_INSTALL` to a new `<name>` rather than reusing `ishmem`.
 
 ## 0. Source
 
@@ -50,16 +50,17 @@ The script runs configure, build and install in one go. It uses these options:
 -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=RelWithDebInfo
 -DENABLE_MPI=ON -DMPI_DIR=$I_MPI_ROOT -DISHMEM_DEFAULT_RUNTIME=mpi
 -DBUILD_UNIT_TESTS=$BUILD_UNIT_TESTS -DBUILD_PERF_TESTS=ON -DBUILD_EXAMPLES=ON
--DCTEST_LAUNCHER=mpi -DENABLE_OPENSHMEM=OFF -DISHMEM_AOT_DEVICE_TYPES=$ISHMEM_AOT_DEVICE_TYPES
+-DCTEST_LAUNCHER=mpi -DENABLE_OPENSHMEM=OFF -DISHMEM_AOT_DEVICE_TYPES=$I_SHMEM_AOT_DEVICE_TYPES
 -DENABLE_IBGDA=1 -DISHMEM_IBGDA_NIC_VENDOR=MLX5
 ```
 
-- `ISHMEM_AOT_DEVICE_TYPES` defaults to `xe3`, which is correct for this machine (cri-c, GPU 0x674f).
+- `I_SHMEM_AOT_DEVICE_TYPES` defaults to `0x674f` (device ID of this machine's CRI GPU; ocloc maps it to `cri`).
+  Do not use `xe3`: some kernels get recompiled from IR and hit an IGC internal compiler error.
   Use `xe2` on xe2 systems and `xe-hpc` on PVC.
-- Env overrides: `ISHMEM_SRC`, `ISHMEM_BUILD`, `ISHMEM_INSTALL`, `JOBS` (default `nproc`).
+- Env overrides: `I_SHMEM_SRC`, `I_SHMEM_BUILD`, `I_SHMEM_INSTALL`, `JOBS` (default `nproc`).
 - `BUILD_UNIT_TESTS` defaults to `OFF` because the unit tests dominate build time.
   Set `BUILD_UNIT_TESTS=ON` before running the ctest unit tests in section 3.
-- Logs go to `$ISHMEM_BUILD/{configure,build,install}.log`. When a build fails, grep `build.log` for `error:`.
+- Logs go to `$I_SHMEM_BUILD/{configure,build,install}.log`. When a build fails, grep `build.log` for `error:`.
 - A full build takes several minutes because of AOT compilation. Run it with a long timeout,
   or in the background.
 - After a source change, an incremental `cmake --build ~/shmem-workspace/build/ishmem -j` is enough.
@@ -106,12 +107,12 @@ This is a 2-PE `put_nbi_bw` run in device mode with IBGDA over mlx5. Coworkers r
 
 - PE 0 uses `ZE_AFFINITY_MASK=GPU_INDEX1` with `ISHMEM_IBGDA_NIC=mlx5_<NIC_DEVICE1>`. PE 1 does the same with the `2` variables.
 - NIC indices default to the GPU indices. Override them with `NIC_DEVICE1`/`NIC_DEVICE2`.
-- Env: `ISHMEM_BUILD`, `I_MPI_FABRICS` (default `shm`), `TIMEOUT` (default 120 s).
+- Env: `I_SHMEM_BUILD`, `I_MPI_FABRICS` (default `shm`), `TIMEOUT` (default 120 s).
 - Output is CSV.
 - To run another binary (perf test or example) with the same IBGDA env and GPU/NIC binding, pass it after `--`:
   ```bash
-  ibgda-quick.sh 4 6 -- "$ISHMEM_BUILD/examples/2_get"
-  ibgda-quick.sh -- env ISHMEM_IBGDA_DIRECT_DOORBELL=0 "$ISHMEM_BUILD/test/performance/get_bw"
+  ibgda-quick.sh 4 6 -- "$I_SHMEM_BUILD/examples/2_get"
+  ibgda-quick.sh -- env ISHMEM_IBGDA_DIRECT_DOORBELL=0 "$I_SHMEM_BUILD/test/performance/get_bw"
   ```
 
 ## 4. Debugging failures

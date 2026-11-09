@@ -4,13 +4,13 @@
 #   CMD replaces the default put_nbi_bw run, using the same IBGDA launch environment.
 #   PE 0 uses GPU GPU_INDEX1 (default 4) and NIC mlx5_<NIC_DEVICE1>,
 #   PE 1 uses GPU GPU_INDEX2 (default 6) and NIC mlx5_<NIC_DEVICE2>.
-# Env: NIC_DEVICE1/NIC_DEVICE2 (default: same as the GPU index), ISHMEM_BUILD,
+# Env: NIC_DEVICE1/NIC_DEVICE2 (default: same as the GPU index), I_SHMEM_BUILD,
 #      I_MPI_FABRICS (default shm), TIMEOUT (default 120)
 set -eo pipefail
 
 WORKSPACE_ROOT=${WORKSPACE_ROOT:-"$HOME/shmem-workspace"}
-ISHMEM_BUILD=${ISHMEM_BUILD:-"$WORKSPACE_ROOT/build/ishmem"}
-PERF_DIR="$ISHMEM_BUILD/test/performance"
+I_SHMEM_BUILD=${I_SHMEM_BUILD:-"$WORKSPACE_ROOT/build/ishmem"}
+PERF_DIR="$I_SHMEM_BUILD/test/performance"
 
 GPU_ARGS=()
 while [[ $# -gt 0 && $1 != "--" ]]; do

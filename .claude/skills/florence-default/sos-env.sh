@@ -6,15 +6,15 @@
 # The build bakes in the bundled libsma.so path and the SHMEM_OFI_PROVIDER of its provider preset
 # (cmake summary: "SOS provider"), so neither has to be set here.
 # Env:
-#   ISHMEM_INSTALL  install prefix of the sos build (default ~/shmem-workspace/install/ishmem-sos);
+#   I_SHMEM_INSTALL  install prefix of the sos build (default ~/shmem-workspace/install/ishmem-sos);
 #                   only used for PATH (oshrun/oshcc) and the sanity check below
 #   SOS_PROVIDER    unset (default): use the build's preset; or shm / verbs to force
 #                   SHMEM_OFI_PROVIDER (must match the preset the build was configured with)
 #   SOS_RUNTIME     value for ISHMEM_RUNTIME (default OPENSHMEM); set MPI to run the same binaries
 #                   over Intel MPI (env.sh already set ISHMEM_RUNTIME=MPI, so it cannot be the knob)
 
-ISHMEM_INSTALL=${ISHMEM_INSTALL:-$HOME/shmem-workspace/install/ishmem-sos}
-SOS_PREFIX=$ISHMEM_INSTALL/lib/ishmem/sos
+I_SHMEM_INSTALL=${I_SHMEM_INSTALL:-$HOME/shmem-workspace/install/ishmem-sos}
+SOS_PREFIX=$I_SHMEM_INSTALL/lib/ishmem/sos
 
 export ISHMEM_RUNTIME=${SOS_RUNTIME:-OPENSHMEM}
 export PATH=$SOS_PREFIX/bin:$PATH

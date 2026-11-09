@@ -31,4 +31,4 @@ export I_MPI_OFFLOAD_RDMA=1
 # InfiniBand / verbs: FI_VERBS_IFACE=ib0 and MLX5_SCATTER_TO_CQE=0 are SOS (OPENSHMEM runtime)
 # workarounds only; they are not needed for the MPI runtime, so they are not set here.
 
-export PATH=${ISHMEM_SRC:-$HOME/shmem-workspace/repos/ishmem}/scripts:$PATH
+export PATH=${I_SHMEM_SRC:-$HOME/shmem-workspace/repos/ishmem}/scripts:$PATH

@@ -2,7 +2,7 @@
 # Configure and build Intel SHMEM (unit/perf tests + examples) against Intel MPI.
 # Usage: build.sh [extra cmake -D args...]
 # Outside a Slurm job it re-launches itself on a compute node via srun.sh (SLURM_TIME, SRUN_ARGS).
-# Env: ISHMEM_SRC, ISHMEM_BUILD, ISHMEM_INSTALL, ISHMEM_AOT_DEVICE_TYPES, JOBS,
+# Env: I_SHMEM_SRC, I_SHMEM_BUILD, I_SHMEM_INSTALL, I_SHMEM_AOT_DEVICE_TYPES, JOBS,
 #      ONEAPI_MODULE, AGAMA_MODULE (see env.sh),
 #      BUILD_UNIT_TESTS (default ON; OFF skips the unit tests for a faster build),
 #      RUNTIME (mpi (default);
@@ -23,17 +23,17 @@ if [[ -z ${SLURM_JOB_ID:-} ]]; then
 fi
 
 WORKSPACE_ROOT=${WORKSPACE_ROOT:-"$HOME/shmem-workspace"}
-ISHMEM_SRC=${ISHMEM_SRC:-"$WORKSPACE_ROOT/repos/ishmem"}
-ISHMEM_BUILD=${ISHMEM_BUILD:-"$WORKSPACE_ROOT/build/ishmem-florence"}
-ISHMEM_INSTALL=${ISHMEM_INSTALL:-"$WORKSPACE_ROOT/install/ishmem-florence"}
-ISHMEM_AOT_DEVICE_TYPES=${ISHMEM_AOT_DEVICE_TYPES:-"xe-hpc"}
+I_SHMEM_SRC=${I_SHMEM_SRC:-"$WORKSPACE_ROOT/repos/ishmem"}
+I_SHMEM_BUILD=${I_SHMEM_BUILD:-"$WORKSPACE_ROOT/build/ishmem-florence"}
+I_SHMEM_INSTALL=${I_SHMEM_INSTALL:-"$WORKSPACE_ROOT/install/ishmem-florence"}
+I_SHMEM_AOT_DEVICE_TYPES=${I_SHMEM_AOT_DEVICE_TYPES:-"xe-hpc"}
 JOBS=${JOBS:-$(nproc)}
 BUILD_UNIT_TESTS=${BUILD_UNIT_TESTS:-ON}
 RUNTIME=${RUNTIME:-mpi}
 
-if [[ ! -f "$ISHMEM_SRC/CMakeLists.txt" ]]; then
-    echo "ERROR: ishmem source not found at $ISHMEM_SRC" >&2
-    echo "  git clone https://github.com/intel-innersource/libraries.runtimes.hpc.shmem.ishmem.git $ISHMEM_SRC" >&2
+if [[ ! -f "$I_SHMEM_SRC/CMakeLists.txt" ]]; then
+    echo "ERROR: ishmem source not found at $I_SHMEM_SRC" >&2
+    echo "  git clone https://github.com/intel-innersource/libraries.runtimes.hpc.shmem.ishmem.git $I_SHMEM_SRC" >&2
     exit 1
 fi
 
@@ -43,9 +43,9 @@ case "$RUNTIME" in
     mpi) RUNTIME_ARGS=(-DENABLE_MPI=ON -DMPI_DIR="$I_MPI_ROOT" -DISHMEM_DEFAULT_RUNTIME=mpi -DENABLE_OPENSHMEM=OFF) ;;
     pmi) RUNTIME_ARGS=(-DENABLE_PMI=ON -DENABLE_MPI=OFF -DISHMEM_DEFAULT_RUNTIME=PMI -DENABLE_OPENSHMEM=OFF) ;;
     sos)
-        if [[ ! -f "$ISHMEM_SRC/third_party/sos/autogen.sh" ]]; then
-            echo "ERROR: $ISHMEM_SRC/third_party/sos missing; run" >&2
-            echo "  git -C $ISHMEM_SRC submodule update --init third_party/sos" >&2
+        if [[ ! -f "$I_SHMEM_SRC/third_party/sos/autogen.sh" ]]; then
+            echo "ERROR: $I_SHMEM_SRC/third_party/sos missing; run" >&2
+            echo "  git -C $I_SHMEM_SRC submodule update --init third_party/sos" >&2
             exit 1
         fi
         RUNTIME_ARGS=(-DENABLE_OPENSHMEM=ON -DISHMEM_SOS=bundled
@@ -61,19 +61,19 @@ case "$RUNTIME" in
     *)   echo "ERROR: RUNTIME must be mpi, pmi or sos, got '$RUNTIME'" >&2; exit 1 ;;
 esac
 
-mkdir -p "$ISHMEM_BUILD"
-cmake -S "$ISHMEM_SRC" -B "$ISHMEM_BUILD" \
+mkdir -p "$I_SHMEM_BUILD"
+cmake -S "$I_SHMEM_SRC" -B "$I_SHMEM_BUILD" \
     -DCMAKE_C_COMPILER=icx \
     -DCMAKE_CXX_COMPILER=icpx \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    -DCMAKE_INSTALL_PREFIX="$ISHMEM_INSTALL" \
+    -DCMAKE_INSTALL_PREFIX="$I_SHMEM_INSTALL" \
     "${RUNTIME_ARGS[@]}" \
     -DBUILD_UNIT_TESTS="$BUILD_UNIT_TESTS" \
     -DBUILD_PERF_TESTS=ON \
     -DBUILD_EXAMPLES=ON \
     -DCTEST_LAUNCHER=mpi \
     -DENABLE_IBGDA=OFF \
-    -DISHMEM_AOT_DEVICE_TYPES="$ISHMEM_AOT_DEVICE_TYPES" \
-    "$@" 2>&1 | tee "$ISHMEM_BUILD/configure.log"
-cmake --build "$ISHMEM_BUILD" -j "$JOBS" 2>&1 | tee "$ISHMEM_BUILD/build.log"
-cmake --install "$ISHMEM_BUILD" 2>&1 | tee "$ISHMEM_BUILD/install.log"
+    -DISHMEM_AOT_DEVICE_TYPES="$I_SHMEM_AOT_DEVICE_TYPES" \
+    "$@" 2>&1 | tee "$I_SHMEM_BUILD/configure.log"
+cmake --build "$I_SHMEM_BUILD" -j "$JOBS" 2>&1 | tee "$I_SHMEM_BUILD/build.log"
+cmake --install "$I_SHMEM_BUILD" 2>&1 | tee "$I_SHMEM_BUILD/install.log"

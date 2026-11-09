@@ -31,7 +31,7 @@ Paths (defaults, overridable via env):
 | Install | `~/shmem-workspace/install/ishmem-florence` |
 
 `build/ishmem` and `install/ishmem` are a separate SOS/OPENSHMEM debug build (`build/ishmem/env_sos.sh`,
-`setup.sh`); don't point this skill at them. For a variant build set `ISHMEM_BUILD`/`ISHMEM_INSTALL`
+`setup.sh`); don't point this skill at them. For a variant build set `I_SHMEM_BUILD`/`I_SHMEM_INSTALL`
 to a new `build/<name>` / `install/<name>`.
 
 ## 1. Environment
@@ -68,15 +68,15 @@ The script runs configure, build and install in one go:
 -DENABLE_MPI=ON -DMPI_DIR=$I_MPI_ROOT -DISHMEM_DEFAULT_RUNTIME=mpi
 -DBUILD_UNIT_TESTS=$BUILD_UNIT_TESTS -DBUILD_PERF_TESTS=ON -DBUILD_EXAMPLES=ON
 -DCTEST_LAUNCHER=mpi -DENABLE_OPENSHMEM=OFF -DENABLE_IBGDA=OFF
--DISHMEM_AOT_DEVICE_TYPES=$ISHMEM_AOT_DEVICE_TYPES
+-DISHMEM_AOT_DEVICE_TYPES=$I_SHMEM_AOT_DEVICE_TYPES
 ```
 
-- `ISHMEM_AOT_DEVICE_TYPES` defaults to `xe-hpc` (PVC).
-- Env overrides: `ISHMEM_SRC`, `ISHMEM_BUILD`, `ISHMEM_INSTALL`, `JOBS` (default `nproc`),
+- `I_SHMEM_AOT_DEVICE_TYPES` defaults to `xe-hpc` (PVC).
+- Env overrides: `I_SHMEM_SRC`, `I_SHMEM_BUILD`, `I_SHMEM_INSTALL`, `JOBS` (default `nproc`),
   `BUILD_UNIT_TESTS` (default `ON`; `OFF` for a much faster build), `RUNTIME` (`mpi` default; `pmi`
   on branches with the PMI runtime, see the anbmg-default skill section 4; `sos` for the bundled SOS, see section 4).
 - To also generate 8-PE ctests: `build.sh -DISHMEM_PE_COUNTS_UNIT_TESTS="2;8"` (default is `2`).
-- Logs go to `$ISHMEM_BUILD/{configure,build,install}.log`. On failure, grep `build.log` for `error:`.
+- Logs go to `$I_SHMEM_BUILD/{configure,build,install}.log`. On failure, grep `build.log` for `error:`.
 - Run the full build with a long timeout or in the background.
 - After a source change, an incremental build is enough:
   `srun.sh cmake --build ~/shmem-workspace/build/ishmem-florence -j`.
@@ -160,10 +160,10 @@ git -C ~/shmem-workspace/repos/ishmem-sos submodule update --init third_party/so
 #   verbs + ENABLE_MPI=ON  (pmi-mpi, default runtime MPI):        build/ishmem-sos,     install/ishmem-sos
 #   shm   + ENABLE_MPI=OFF (pmi-simple, default runtime OPENSHMEM): build/ishmem-sos-shm, install/ishmem-sos-shm
 W=~/shmem-workspace
-RUNTIME=sos ISHMEM_SRC=$W/repos/ishmem-sos ISHMEM_BUILD=$W/build/ishmem-sos ISHMEM_INSTALL=$W/install/ishmem-sos \
+RUNTIME=sos I_SHMEM_SRC=$W/repos/ishmem-sos I_SHMEM_BUILD=$W/build/ishmem-sos I_SHMEM_INSTALL=$W/install/ishmem-sos \
     $W/.claude/skills/florence-default/build.sh
-RUNTIME=sos SOS_MPI=OFF SOS_PROVIDER=shm ISHMEM_SRC=$W/repos/ishmem-sos ISHMEM_BUILD=$W/build/ishmem-sos-shm \
-    ISHMEM_INSTALL=$W/install/ishmem-sos-shm $W/.claude/skills/florence-default/build.sh
+RUNTIME=sos SOS_MPI=OFF SOS_PROVIDER=shm I_SHMEM_SRC=$W/repos/ishmem-sos I_SHMEM_BUILD=$W/build/ishmem-sos-shm \
+    I_SHMEM_INSTALL=$W/install/ishmem-sos-shm $W/.claude/skills/florence-default/build.sh
 ```
 
 - `RUNTIME=sos` passes `-DENABLE_OPENSHMEM=ON -DISHMEM_SOS=bundled -DISHMEM_SOS_PROVIDER=${SOS_PROVIDER:-auto}`
@@ -194,7 +194,7 @@ $R bash -c "SOS_RUNTIME=MPI source $F/sos-env.sh; ctest --test-dir $B/test/unit 
 ```
 
 `sos-env.sh` sets `ISHMEM_RUNTIME=OPENSHMEM` (`SOS_RUNTIME` overrides), puts the SOS `bin` on `PATH`, and exports the
-SOS-only Florence workarounds `FI_VERBS_IFACE=ib0` and `MLX5_SCATTER_TO_CQE=0` (harmless for shm). Set `ISHMEM_INSTALL`
+SOS-only Florence workarounds `FI_VERBS_IFACE=ib0` and `MLX5_SCATTER_TO_CQE=0` (harmless for shm). Set `I_SHMEM_INSTALL`
 (not exported) to pick the tree. The provider comes from the build; `SOS_PROVIDER=shm|verbs` forces it.
 
 Debugging knobs: `SHMEM_INFO=1` (prints SOS's env and provider), `FI_LOG_LEVEL=warn` (or `debug`),

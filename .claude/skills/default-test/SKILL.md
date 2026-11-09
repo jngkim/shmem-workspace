@@ -14,7 +14,7 @@ Paths (defaults, overridable via env):
 | Install | `~/shmem-workspace/install/ishmem` |
 
 Other builds also live under `~/shmem-workspace/build/<name>` and `~/shmem-workspace/install/<name>`;
-for a variant build set `ISHMEM_BUILD`/`ISHMEM_INSTALL` to a new `<name>` rather than reusing `ishmem`.
+for a variant build set `I_SHMEM_BUILD`/`I_SHMEM_INSTALL` to a new `<name>` rather than reusing `ishmem`.
 
 ## 0. Source
 
@@ -53,17 +53,18 @@ The script runs configure, build and install in one go. It uses these options:
 -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=RelWithDebInfo
 -DENABLE_MPI=ON -DMPI_DIR=$I_MPI_ROOT -DISHMEM_DEFAULT_RUNTIME=mpi
 -DBUILD_UNIT_TESTS=$BUILD_UNIT_TESTS -DBUILD_PERF_TESTS=ON -DBUILD_EXAMPLES=ON
--DCTEST_LAUNCHER=mpi -DENABLE_OPENSHMEM=OFF -DISHMEM_AOT_DEVICE_TYPES=$ISHMEM_AOT_DEVICE_TYPES
+-DCTEST_LAUNCHER=mpi -DENABLE_OPENSHMEM=OFF -DISHMEM_AOT_DEVICE_TYPES=$I_SHMEM_AOT_DEVICE_TYPES
 ```
 
-- `ISHMEM_AOT_DEVICE_TYPES` defaults to `xe-hpc,xe2`. On a PVC-only node such as tpi-dnp03,
-  `ISHMEM_AOT_DEVICE_TYPES=pvc` builds a single device image and cuts the AOT build time.
+- `I_SHMEM_AOT_DEVICE_TYPES` defaults to `xe-hpc,xe2`. On hq-cri-d32-c (CRI GPU) it defaults to `0x674f`
+  (device ID; ocloc maps it to `cri`). On a PVC-only node such as tpi-dnp03,
+  `I_SHMEM_AOT_DEVICE_TYPES=pvc` builds a single device image and cuts the AOT build time.
 - The script passes `-DENABLE_IBGDA=OFF` explicitly, because the ibgda-test skill uses the same build tree
   and would otherwise leave `ENABLE_IBGDA=1` in `CMakeCache.txt`.
-- Env overrides: `ISHMEM_SRC`, `ISHMEM_BUILD`, `ISHMEM_INSTALL`, `JOBS` (default `nproc`).
+- Env overrides: `I_SHMEM_SRC`, `I_SHMEM_BUILD`, `I_SHMEM_INSTALL`, `JOBS` (default `nproc`).
 - `BUILD_UNIT_TESTS` defaults to `ON`, so the ctest unit tests in section 3 are built.
   The unit tests dominate build time; set `BUILD_UNIT_TESTS=OFF` for a faster build without them.
-- Logs go to `$ISHMEM_BUILD/{configure,build,install}.log`. When a build fails, grep `build.log` for `error:`.
+- Logs go to `$I_SHMEM_BUILD/{configure,build,install}.log`. When a build fails, grep `build.log` for `error:`.
 - A full build takes several minutes because of AOT compilation. Run it with a long timeout,
   or in the background.
 - After a source change, an incremental `cmake --build ~/shmem-workspace/build/ishmem -j` is enough.
