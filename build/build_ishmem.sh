@@ -2,16 +2,16 @@
 
 export BASE=${BASE:-${HOME}/shmem-workspace/build/latest}
 
-ISHMEM_SRC=${ISHMEM_SRC:-${HOME}/shmem-workspace/repos/ishmem}
-ISHMEM_BUILD=${ISHMEM_BUILD:-${BASE}/ishmem}
-ISHMEM_INSTALL=${ISHMEM_INSTALL:-${BASE}/install/ishmem}
+I_SHMEM_SRC=${I_SHMEM_SRC:-${HOME}/shmem-workspace/repos/ishmem}
+I_SHMEM_BUILD=${I_SHMEM_BUILD:-${BASE}/ishmem}
+I_SHMEM_INSTALL=${I_SHMEM_INSTALL:-${BASE}/install/ishmem}
 SOS_INSTALL=${SOS_INSTALL:-${BASE}/install/sos}
 LEVEL_ZERO_DIR=${LEVEL_ZERO_DIR:-}
 
 build_ishmem() {
 
-    if [ ! -d ${ISHMEM_SRC} ]; then
-        echo "ERROR: ishmem source not found at ${ISHMEM_SRC}"
+    if [ ! -d ${I_SHMEM_SRC} ]; then
+        echo "ERROR: ishmem source not found at ${I_SHMEM_SRC}"
         exit 1
     fi
 
@@ -21,15 +21,15 @@ build_ishmem() {
         exit 1
     fi
 
-    mkdir -p ${ISHMEM_BUILD}
-    cd ${ISHMEM_BUILD}
+    mkdir -p ${I_SHMEM_BUILD}
+    cd ${I_SHMEM_BUILD}
 
     CMAKE_ARGS=(
       -DCMAKE_C_COMPILER=icx
       -DCMAKE_CXX_COMPILER=icpx
       -DENABLE_MPI=ON
       -DCTEST_LAUNCHER=mpi
-      -DCMAKE_INSTALL_PREFIX=${ISHMEM_INSTALL}
+      -DCMAKE_INSTALL_PREFIX=${I_SHMEM_INSTALL}
     )
   
   if [[ -d ${SOS_INSTALL} ]]; then
@@ -39,13 +39,13 @@ build_ishmem() {
       )
   fi
 
-    cmake ${ISHMEM_SRC} "${CMAKE_ARGS[@]}"
+    cmake ${I_SHMEM_SRC} "${CMAKE_ARGS[@]}"
     make -j 32
     make install
 }
 
 build_ishmem_tests() {
-    cd ${ISHMEM_BUILD}
+    cd ${I_SHMEM_BUILD}
     CMAKE_ARGS=(
         -DCTEST_LAUNCHER=mpi
         -DBUILD_APPS=OFF
@@ -55,7 +55,7 @@ build_ishmem_tests() {
         -DISHMEM_HOST_LINK_TYPE=SHARED
     )
 
-    cmake ${ISHMEM_SRC} "${CMAKE_ARGS[@]}"
+    cmake ${I_SHMEM_SRC} "${CMAKE_ARGS[@]}"
     make -j
 }
 
