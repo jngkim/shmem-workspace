@@ -13,6 +13,7 @@ I_SHMEM_INSTALL=${I_SHMEM_INSTALL:-"$WORKSPACE_ROOT/install/ishmem"}
 # hq-cri-d32-c has CRI GPUs (0x674f; ocloc maps it to cri)
 [[ $(hostname -s) == hq-cri-d32-c ]] && AOT_DEFAULT=0x674f || AOT_DEFAULT="xe-hpc,xe2"
 I_SHMEM_AOT_DEVICE_TYPES=${I_SHMEM_AOT_DEVICE_TYPES:-$AOT_DEFAULT}
+I_SHMEM_HOST_LINK_TYPE=${I_SHMEM_HOST_LINK_TYPE:-SHARED}   # how tests/examples link the host library
 JOBS=${JOBS:-$(nproc)}
 BUILD_UNIT_TESTS=${BUILD_UNIT_TESTS:-ON}
 
@@ -40,6 +41,7 @@ cmake -S "$I_SHMEM_SRC" -B "$I_SHMEM_BUILD" \
     -DENABLE_OPENSHMEM=OFF \
     -DENABLE_IBGDA=OFF \
     -DISHMEM_AOT_DEVICE_TYPES="$I_SHMEM_AOT_DEVICE_TYPES" \
+    -DISHMEM_HOST_LINK_TYPE="$I_SHMEM_HOST_LINK_TYPE" \
     "$@" 2>&1 | tee "$I_SHMEM_BUILD/configure.log"
 cmake --build "$I_SHMEM_BUILD" -j "$JOBS" 2>&1 | tee "$I_SHMEM_BUILD/build.log"
 cmake --install "$I_SHMEM_BUILD" 2>&1 | tee "$I_SHMEM_BUILD/install.log"

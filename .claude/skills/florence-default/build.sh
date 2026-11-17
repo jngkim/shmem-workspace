@@ -27,6 +27,7 @@ I_SHMEM_SRC=${I_SHMEM_SRC:-"$WORKSPACE_ROOT/repos/ishmem"}
 I_SHMEM_BUILD=${I_SHMEM_BUILD:-"$WORKSPACE_ROOT/build/ishmem-florence"}
 I_SHMEM_INSTALL=${I_SHMEM_INSTALL:-"$WORKSPACE_ROOT/install/ishmem-florence"}
 I_SHMEM_AOT_DEVICE_TYPES=${I_SHMEM_AOT_DEVICE_TYPES:-"xe-hpc"}
+I_SHMEM_HOST_LINK_TYPE=${I_SHMEM_HOST_LINK_TYPE:-SHARED}   # how tests/examples link the host library
 JOBS=${JOBS:-$(nproc)}
 BUILD_UNIT_TESTS=${BUILD_UNIT_TESTS:-ON}
 RUNTIME=${RUNTIME:-mpi}
@@ -74,6 +75,7 @@ cmake -S "$I_SHMEM_SRC" -B "$I_SHMEM_BUILD" \
     -DCTEST_LAUNCHER=mpi \
     -DENABLE_IBGDA=OFF \
     -DISHMEM_AOT_DEVICE_TYPES="$I_SHMEM_AOT_DEVICE_TYPES" \
+    -DISHMEM_HOST_LINK_TYPE="$I_SHMEM_HOST_LINK_TYPE" \
     "$@" 2>&1 | tee "$I_SHMEM_BUILD/configure.log"
 cmake --build "$I_SHMEM_BUILD" -j "$JOBS" 2>&1 | tee "$I_SHMEM_BUILD/build.log"
 cmake --install "$I_SHMEM_BUILD" 2>&1 | tee "$I_SHMEM_BUILD/install.log"
