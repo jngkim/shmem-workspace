@@ -1,14 +1,16 @@
 #!/bin/bash
 # Smoke test (1_helloworld) + all examples, 2 PEs on GPUs 4,6 (NUMA 1), ENABLE_IBGDA=ON build.
 # Env: GPUS (4,6), NICS (mlx5_4,mlx5_6), OUT (results-o262/examples), I_SHMEM_BUILD (build/ishmem-o262)
+#      I_SHMEM_RUNTIME (MPI from setup-env.sh; OPENSHMEM or PMI need a build with that backend)
 # Clean env, oneAPI 2026.2 (/usr/local/intel/2026.2/oneapi-vars.sh), ~/setup-env.sh (UseKmdMigration=1).
 # Each example is launched directly (not via ctest): ctest's 7_uid uses standalone_wrapper,
 # which unsets ZE_AFFINITY_MASK and could land on GPUs 0-3.
 # Stops if any new proc of ours is stuck in D state.
 [ -z "$CLEAN_ENV" ] && exec env -i HOME=$HOME PATH=/usr/bin:/bin TERM=dumb CLEAN_ENV=1 \
-    GPUS="$GPUS" NICS="$NICS" OUT="$OUT" I_SHMEM_BUILD="$I_SHMEM_BUILD" bash "$0" "$@"
+    GPUS="$GPUS" NICS="$NICS" OUT="$OUT" I_SHMEM_BUILD="$I_SHMEM_BUILD" I_SHMEM_RUNTIME="$I_SHMEM_RUNTIME" bash "$0" "$@"
 source /usr/local/intel/2026.2/oneapi-vars.sh >/dev/null 2>&1
 source ~/setup-env.sh
+[ -n "$I_SHMEM_RUNTIME" ] && export ISHMEM_RUNTIME=$I_SHMEM_RUNTIME
 OUT=${OUT:-~/shmem-workspace/results-o262/examples}; mkdir -p $OUT; : > $OUT/status
 B=${I_SHMEM_BUILD:-~/shmem-workspace/build/ishmem-o262}
 GPUS=${GPUS:-4,6} NICS=${NICS:-mlx5_4,mlx5_6}
@@ -24,7 +26,7 @@ OLD_STUCK=$(stuck_pids | tr '\n' ' ')
 guard() {
     local p new=
     for p in $(stuck_pids); do [[ " $OLD_STUCK " == *" $p "* ]] || new+="$p "; done
-    [ -n "$new" ] && { ps -o pid,stat,wchan:32,etime,comm -p ${new// /,} > $OUT/stuck.txt
+    [ -n "$new" ] && { new=${new% }; ps -o pid,stat,wchan:32,etime,comm -p ${new// /,} > $OUT/stuck.txt
                        log "ABORT: new stuck processes after $1"; exit 1; }
     return 0
 }
@@ -33,7 +35,7 @@ result() {  # name rc
     log "$1: $r"; guard "$1"
 }
 
-log "start GPUS=$GPUS NICS=$NICS IBGDA=$ISHMEM_IB_ENABLE_IBGDA FABRICS=$I_MPI_FABRICS CMPLR_ROOT=$CMPLR_ROOT I_MPI_ROOT=$I_MPI_ROOT UseKmdMigration=$UseKmdMigration ignoring stuck: $OLD_STUCK"
+log "start RUNTIME=$ISHMEM_RUNTIME GPUS=$GPUS NICS=$NICS IBGDA=$ISHMEM_IB_ENABLE_IBGDA FABRICS=$I_MPI_FABRICS CMPLR_ROOT=$CMPLR_ROOT I_MPI_ROOT=$I_MPI_ROOT UseKmdMigration=$UseKmdMigration ignoring stuck: $OLD_STUCK"
 cd $B/examples
 for ex in 1_helloworld 2_get 3_library_apis 4_pi 5_pi_reduce 6_team_split_strided; do
     timeout -k 10 $T mpiexec -n 2 $RUN ./$ex > $OUT/$ex.log 2>&1
